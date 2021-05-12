@@ -210,18 +210,31 @@ void Init(App* app)
 
 void Gui(App* app)
 {
-    ImGui::Begin("Info");
-    //ImGui::Text("FPS: %f", 1.0f/app->deltaTime);
+	ImGui::BeginMainMenuBar();
+	if (ImGui::BeginMenu("App"))
+	{
+		if (ImGui::MenuItem("OpenGL info")) { app->show_opengl_info = true; }
 
-	// OpenGL information ------------------
-	ImGui::Text("OpenGL version: %s", app->info.version.c_str());
-	ImGui::Text("OpenGL renderer: %s", app->info.renderer.c_str());
-	ImGui::Text("GPU vendor: %s", app->info.vendor.c_str());
-	ImGui::Text("GLSL version: %s", app->info.shadingLanguageVersion.c_str());
+		ImGui::EndMenu();
+	}
 
-	for (int i = 0; i < app->info.extensions.size(); ++i)
-		ImGui::Text("Extension %i: %s", i, app->info.extensions[i].c_str());
-    ImGui::End();
+	ImGui::EndMainMenuBar();
+
+	if (app->show_opengl_info)
+	{
+		ImGui::Begin("Info", &app->show_opengl_info);
+		//ImGui::Text("FPS: %f", 1.0f/app->deltaTime);
+
+		// OpenGL information ------------------
+		ImGui::Text("OpenGL version: %s", app->info.version.c_str());
+		ImGui::Text("OpenGL renderer: %s", app->info.renderer.c_str());
+		ImGui::Text("GPU vendor: %s", app->info.vendor.c_str());
+		ImGui::Text("GLSL version: %s", app->info.shadingLanguageVersion.c_str());
+
+		for (int i = 0; i < app->info.extensions.size(); ++i)
+			ImGui::Text("Extension %i: %s", i, app->info.extensions[i].c_str());
+		ImGui::End();
+	}
 }
 
 void Update(App* app)

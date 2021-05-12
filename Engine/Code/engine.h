@@ -85,6 +85,7 @@ struct App
 
 	// OpenGL info
 	GLInfo info;
+	bool show_opengl_info = false;
 
     // Embedded geometry (in-editor simple meshes such as
     // a screen filling quad, a cube, a sphere...)
