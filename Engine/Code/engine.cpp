@@ -204,6 +204,10 @@ void Update(App* app)
 
 void Render(App* app)
 {
+	// Clear the screen (also ImGui...)
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     switch (app->mode)
     {
         case Mode_TexturedQuad:
