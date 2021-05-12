@@ -187,13 +187,40 @@ void Init(App* app)
     // - programs (and retrieve uniform indices)
     // - textures
 
+
+	// OpenGL information ------------------
+	app->info.version = (const char*)glGetString(GL_VERSION);
+	app->info.renderer = (const char*)glGetString(GL_RENDERER);
+	app->info.vendor = (const char*)glGetString(GL_VENDOR);
+	app->info.shadingLanguageVersion = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+	GLint num_extensions;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
+	for (int i = 0; i < num_extensions; ++i)
+	{
+		app->info.extensions.push_back((const char*)glGetStringi(GL_EXTENSIONS, GLuint(i)));
+	}
+
+
+
+
+
     app->mode = Mode_TexturedQuad;
 }
 
 void Gui(App* app)
 {
     ImGui::Begin("Info");
-    ImGui::Text("FPS: %f", 1.0f/app->deltaTime);
+    //ImGui::Text("FPS: %f", 1.0f/app->deltaTime);
+
+	// OpenGL information ------------------
+	ImGui::Text("OpenGL version: %s", app->info.version.c_str());
+	ImGui::Text("OpenGL renderer: %s", app->info.renderer.c_str());
+	ImGui::Text("GPU vendor: %s", app->info.vendor.c_str());
+	ImGui::Text("GLSL version: %s", app->info.shadingLanguageVersion.c_str());
+
+	for (int i = 0; i < app->info.extensions.size(); ++i)
+		ImGui::Text("Extension %i: %s", i, app->info.extensions[i].c_str());
     ImGui::End();
 }
 
