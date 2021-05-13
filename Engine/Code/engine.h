@@ -10,7 +10,7 @@
 #include "assimp_model_loading.h"
 #include "buffer_management.h"
 #include "Entity.h"
-
+#include "Light.h"
 
 #define BINDING(b) b
 
@@ -120,12 +120,21 @@ struct App
 	u32 plane;
 	u32 texturedMeshProgram_uTexture;
 
-	// Uniform blocks
+	// ------- Uniform blocks ---------- 
+
+    // Local Params Block 
 	Buffer ubuffer;
 	GLint maxUniformBufferSize;
 	GLint uniformBlockAlignment;
 	u32 blockOffset;
 	u32 blockSize;
+
+    // Global Params Block 
+    Buffer gpBuffer; 
+    GLint maxGlobalParamsBufferSize; 
+    GLint globalParamsAlignment; 
+    u32 globalParamsOffset;
+    u32 globalParamsSize; 
 
 	// Transformations (temporal i guess)
 	vec3 cameraPos;
@@ -137,6 +146,9 @@ struct App
 
 	//Entities
 	std::vector<Entity> entities;
+
+    //Lights
+    std::vector<Light> lights; 
 
 };
 

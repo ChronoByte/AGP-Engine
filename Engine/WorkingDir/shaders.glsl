@@ -45,6 +45,19 @@ void main()
 
 #if defined(VERTEX) ///////////////////////////////////////////////////
 
+struct Light {
+	unsigned int type; 
+	vec3 position;
+	vec3 color; 
+	vec3 direction;
+};
+
+layout(binding = 0, std140) uniform GlobalParams
+{
+	unsigned int uLightCount; 
+	Light uLights[16];
+};
+
 layout(binding = 1, std140) uniform LocalParams
 {
 	mat4 uWorldMatrix;

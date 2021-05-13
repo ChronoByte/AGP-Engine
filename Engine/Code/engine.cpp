@@ -281,13 +281,22 @@ void Init(App* app)
 	}
 
 	// Uniform blocks ---------
+
+	// Local Params
 	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &app->maxUniformBufferSize);
 	glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &app->uniformBlockAlignment);
 	app->ubuffer = CreateConstantBuffer(app->maxUniformBufferSize);
 	
+	// Global Params
+	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &app->maxGlobalParamsBufferSize);
+	glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &app->globalParamsAlignment);
+	app->gpBuffer = CreateConstantBuffer(app->maxGlobalParamsBufferSize);
+
 	// Model ----------
 	app->model = LoadModel(app, "Patrick/Patrick.obj");
-	
+
+	app->mode = Mode_Model;
+
 	//Entities --------
 
 	Entity e1 = Entity(glm::mat4(1.0), app->model, 0, 0);
@@ -302,8 +311,11 @@ void Init(App* app)
 	e2.worldMatrix = glm::translate(e2.worldMatrix, vec3(0.0, 1.0, 2.0));
 	app->entities.push_back(e2);
 
+	// Lights -----------
 
-    app->mode = Mode_Model;
+	app->lights.push_back(Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
+	app->lights.push_back(Light(glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+   
 }
 
 void Gui(App* app)
@@ -343,6 +355,21 @@ void Update(App* app)
 {
     // You can handle app->input keyboard/mouse here
 	
+	// Global params
+
+	MapBuffer(app->gpBuffer, GL_WRITE_ONLY);
+	app->globalParamsOffset = app->gpBuffer.head;
+
+	for (u32 i = 0; i < app->lights.size(); ++i)
+	{
+		const Light& light = app->lights[i];
+		PushUInt(app->gpBuffer, static_cast<u32>(light.type));
+		PushVec3(app->gpBuffer, light.position);
+		PushVec3(app->gpBuffer, light.color);
+		PushVec3(app->gpBuffer, light.direction);
+	}
+
+	UnmapBuffer(app->gpBuffer);
 
 
 	//Update uniform blocks ------
@@ -409,6 +436,8 @@ void Render(App* app)
 			
 			Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
 			glUseProgram(texturedMeshProgram.handle);
+
+			glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
 
 			for (int i = 0; i < app->entities.size(); ++i)
 			{
