@@ -113,7 +113,9 @@ struct App
     // VAO object to link our screen filling quad with our textured quad shader
     GLuint vao;
 
+	//Models stuff
 	u32 model;
+	u32 plane;
 	u32 texturedMeshProgram_uTexture;
 
 	// Uniform blocks
@@ -124,6 +126,8 @@ struct App
 	u32 blockSize;
 
 	// Transformations (temporal i guess)
+	vec3 cameraPos;
+	vec3 cameraRef;
 	glm::mat4 worldMatrix;
 	glm::mat4 viewMatrix;
 	glm::mat4 projectionMatrix;
@@ -143,3 +147,5 @@ void Render(App* app);
 u32 LoadTexture2D(App* app, const char* filepath);
 
 GLuint FindVAO(Mesh& mesh, u32 submeshIndex, const Program& program);
+
+void renderQuad(App* app);

@@ -205,17 +205,20 @@ void Init(App* app)
 
 
 	//--------------------- TEXTURED QUAD ---------------------- //
+	
+	// Vertex Buffer
 	glGenBuffers(1, &app->embeddedVertices);
 	glBindBuffer(GL_ARRAY_BUFFER, app->embeddedVertices);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	// Index Buffer
 	glGenBuffers(1, &app->embeddedElements);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app->embeddedElements);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	// Attribute state
+	// VAO
 	glGenVertexArrays(1, &app->vao);
 	glBindVertexArray(app->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, app->embeddedVertices);
@@ -240,12 +243,21 @@ void Init(App* app)
 
 
 
-
 	//--------------------- PATRICK ---------------------- //
 
-	// Model ----------
-	app->model = LoadModel(app, "Patrick/Patrick.obj");
 	
+
+	// Camera -----------
+	app->cameraPos = vec3(0.0f, 4.0f, 15.0f);
+	app->cameraRef = vec3(0.0f);
+
+	app->projectionMatrix = glm::perspective(glm::radians(60.0f), (float)app->displaySize.x/(float)app->displaySize.y, 0.1f, 1000.0f);
+	app->viewMatrix = glm::lookAt(app->cameraPos, app->cameraRef, glm::vec3(0, 1, 0));
+	
+	app->worldMatrix = glm::mat4(1.0);
+	app->worldMatrix = glm::translate(app->worldMatrix, vec3(0.0, 0.0, 0.0));
+
+
 	// Program ----------
 	app->texturedMeshProgramIdx = LoadProgram(app, "shaders.glsl", "SHOW_TEXTURED_MESH");
 	Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
@@ -261,16 +273,20 @@ void Init(App* app)
 
 	for (int i = 0; i < attributeCount; ++i)
 	{
-		glGetActiveAttrib(texturedMeshProgram.handle, i, ARRAY_COUNT(attributeName), &attributeNameLength, &attributeSize, &attributeType, attributeName);
+		glGetActiveAttrib(texturedMeshProgram.handle, i, 64, &attributeNameLength, &attributeSize, &attributeType, attributeName);
 
 		GLint attributeLocation = glGetAttribLocation(texturedMeshProgram.handle, attributeName);
-		texturedMeshProgram.vertexInputLayout.attributes.push_back({(u8)attributeLocation,(u8)attributeSize }); // position
+		texturedMeshProgram.vertexInputLayout.attributes.push_back({(u8)attributeLocation,(u8)attributeSize }); 
 	}
 
 	// Uniform blocks ---------
 	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &app->maxUniformBufferSize);
 	glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &app->uniformBlockAlignment);
 	app->ubuffer = CreateBuffer(app->maxUniformBufferSize, GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
+
+	// Model ----------
+	app->model = LoadModel(app, "Patrick/Patrick.obj");
+	
 
 
     app->mode = Mode_Model;
@@ -291,7 +307,9 @@ void Gui(App* app)
 	if (app->show_opengl_info)
 	{
 		ImGui::Begin("Info", &app->show_opengl_info);
-		//ImGui::Text("FPS: %f", 1.0f/app->deltaTime);
+		
+		// FPS information ------------------
+		ImGui::Text("FPS: %f", 1.0f/app->deltaTime);
 
 		// OpenGL information ------------------
 		ImGui::Text("OpenGL version: %s", app->info.version.c_str());
@@ -305,18 +323,25 @@ void Gui(App* app)
 	}
 }
 
+
+
 void Update(App* app)
 {
     // You can handle app->input keyboard/mouse here
+	
 
 	app->worldViewProjectionMatrix = app->projectionMatrix * app->viewMatrix * app->worldMatrix;
-
 
 	//Update uniform blocks ------
 	MapBuffer(app->ubuffer, GL_WRITE_ONLY);
 
+	app->ubuffer.head = Align(app->ubuffer.head, app->uniformBlockAlignment);
+	app->blockOffset = app->ubuffer.head;
+
 	PushAlignedData(app->ubuffer, value_ptr(app->worldMatrix), sizeof(app->worldMatrix), sizeof(vec4));
 	PushAlignedData(app->ubuffer, value_ptr(app->worldViewProjectionMatrix), sizeof(app->worldViewProjectionMatrix), sizeof(vec4));
+	
+	app->blockSize = app->ubuffer.head - app->blockOffset;
 
 	UnmapBuffer(app->ubuffer);
 }
@@ -368,10 +393,11 @@ void Render(App* app)
 			Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
 			glUseProgram(texturedMeshProgram.handle);
 
-			glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->blockOffset, app->blockSize);
-
+			
 			Model& model = app->models[app->model];
 			Mesh& mesh = app->meshes[model.meshIdx];
+			glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->blockOffset, app->blockSize);
+
 
 			for (u32 i = 0; i < mesh.submeshes.size(); ++i)
 			{
@@ -394,6 +420,9 @@ void Render(App* app)
 
         default:;
     }
+
+	glBindVertexArray(0);
+	glUseProgram(0);
 }
 
 GLuint FindVAO(Mesh& mesh, u32 submeshIndex, const Program& program)
@@ -451,3 +480,32 @@ GLuint FindVAO(Mesh& mesh, u32 submeshIndex, const Program& program)
 	return vaoHandle;
 }
 
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad(App* app)
+{
+	if (quadVAO == 0)
+	{
+		float quadVertices[] =
+		{
+			// positions        // texture Coords
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		};
+		// setup plane VAO
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	}
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
+}
