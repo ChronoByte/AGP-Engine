@@ -11,6 +11,7 @@
 #include <stb_image_write.h>
 
 
+
 GLuint CreateProgramFromSource(String programSource, const char* shaderName)
 {
     GLchar  infoLogBuffer[1024] = {};
@@ -254,8 +255,8 @@ void Init(App* app)
 	app->projectionMatrix = glm::perspective(glm::radians(60.0f), (float)app->displaySize.x/(float)app->displaySize.y, 0.1f, 1000.0f);
 	app->viewMatrix = glm::lookAt(app->cameraPos, app->cameraRef, glm::vec3(0, 1, 0));
 	
-	app->worldMatrix = glm::mat4(1.0);
-	app->worldMatrix = glm::translate(app->worldMatrix, vec3(0.0, 0.0, 0.0));
+	//app->worldMatrix = glm::mat4(1.0);
+	//app->worldMatrix = glm::translate(app->worldMatrix, vec3(0.0, 0.0, 0.0));
 
 
 	// Program ----------
@@ -287,7 +288,11 @@ void Init(App* app)
 	// Model ----------
 	app->model = LoadModel(app, "Patrick/Patrick.obj");
 	
+	//Entities --------
 
+	Entity e1 = Entity(glm::mat4(1.0), app->model, 0, 0);
+	e1.worldMatrix = glm::translate(e1.worldMatrix, vec3(3.0, 1.0, -2.0));
+	app->entities.push_back(e1);
 
     app->mode = Mode_Model;
 }
@@ -330,18 +335,21 @@ void Update(App* app)
     // You can handle app->input keyboard/mouse here
 	
 
-	app->worldViewProjectionMatrix = app->projectionMatrix * app->viewMatrix * app->worldMatrix;
 
 	//Update uniform blocks ------
 	MapBuffer(app->ubuffer, GL_WRITE_ONLY);
 
-	app->ubuffer.head = Align(app->ubuffer.head, app->uniformBlockAlignment);
-	app->blockOffset = app->ubuffer.head;
+	for (int i = 0; i < app->entities.size(); ++i)
+	{
+		app->ubuffer.head = Align(app->ubuffer.head, app->uniformBlockAlignment);
+		app->entities[i].localParamsOffset = app->ubuffer.head;
 
-	PushMat4(app->ubuffer, app->worldMatrix);
-	PushMat4(app->ubuffer, app->worldViewProjectionMatrix);
+		app->worldViewProjectionMatrix = app->projectionMatrix * app->viewMatrix * app->entities[i].worldMatrix;
+		PushMat4(app->ubuffer, app->worldMatrix);
+		PushMat4(app->ubuffer, app->worldViewProjectionMatrix);
 
-	app->blockSize = app->ubuffer.head - app->blockOffset;
+		app->entities[i].localParamsSize = app->ubuffer.head - app->entities[i].localParamsOffset;
+	}
 
 	UnmapBuffer(app->ubuffer);
 }
@@ -393,26 +401,28 @@ void Render(App* app)
 			Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
 			glUseProgram(texturedMeshProgram.handle);
 
-			
-			Model& model = app->models[app->model];
-			Mesh& mesh = app->meshes[model.meshIdx];
-			glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->blockOffset, app->blockSize);
-
-
-			for (u32 i = 0; i < mesh.submeshes.size(); ++i)
+			for (int i = 0; i < app->entities.size(); ++i)
 			{
-				GLuint vao = FindVAO(mesh, i, texturedMeshProgram);
-				glBindVertexArray(vao);
+				Model& model = app->models[app->model];
+				Mesh& mesh = app->meshes[model.meshIdx];
+				glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
 
-				u32 submeshMaterialIdx = model.materialIdx[i];
-				Material& submeshMaterial = app->materials[submeshMaterialIdx];
 
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
-				glUniform1i(app->texturedMeshProgram_uTexture, 0);
+				for (u32 i = 0; i < mesh.submeshes.size(); ++i)
+				{
+					GLuint vao = FindVAO(mesh, i, texturedMeshProgram);
+					glBindVertexArray(vao);
 
-				Submesh& submesh = mesh.submeshes[i];
-				glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
+					u32 submeshMaterialIdx = model.materialIdx[i];
+					Material& submeshMaterial = app->materials[submeshMaterialIdx];
+
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
+					glUniform1i(app->texturedMeshProgram_uTexture, 0);
+
+					Submesh& submesh = mesh.submeshes[i];
+					glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
+				}
 			}
 		}
 		break;

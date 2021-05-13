@@ -9,6 +9,8 @@
 #include "geometry.h"
 #include "assimp_model_loading.h"
 #include "buffer_management.h"
+#include "Entity.h"
+
 
 #define BINDING(b) b
 
@@ -132,6 +134,9 @@ struct App
 	glm::mat4 viewMatrix;
 	glm::mat4 projectionMatrix;
 	glm::mat4 worldViewProjectionMatrix;
+
+	//Entities
+	std::vector<Entity> entities;
 
 };
 
