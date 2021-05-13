@@ -291,8 +291,17 @@ void Init(App* app)
 	//Entities --------
 
 	Entity e1 = Entity(glm::mat4(1.0), app->model, 0, 0);
-	e1.worldMatrix = glm::translate(e1.worldMatrix, vec3(3.0, 1.0, -2.0));
+	e1.worldMatrix = glm::translate(e1.worldMatrix, vec3(3.0, 1.0, -6.0));
 	app->entities.push_back(e1);
+
+	Entity e3 = Entity(glm::mat4(1.0), app->model, 0, 0);
+	e3.worldMatrix = glm::translate(e3.worldMatrix, vec3(-3.0, 1.0, -6.0));
+	app->entities.push_back(e3);
+
+	Entity e2 = Entity(glm::mat4(1.0), app->model, 0, 0);
+	e2.worldMatrix = glm::translate(e2.worldMatrix, vec3(0.0, 1.0, 2.0));
+	app->entities.push_back(e2);
+
 
     app->mode = Mode_Model;
 }
