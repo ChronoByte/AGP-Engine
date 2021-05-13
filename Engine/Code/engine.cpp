@@ -204,7 +204,7 @@ void Init(App* app)
 
 
 
-	// Textured Quad --------------------------
+	//--------------------- TEXTURED QUAD ---------------------- //
 	glGenBuffers(1, &app->embeddedVertices);
 	glBindBuffer(GL_ARRAY_BUFFER, app->embeddedVertices);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -231,18 +231,26 @@ void Init(App* app)
 	Program& texturedGeometryProgram = app->programs[app->texturedGeometryProgramIdx];
 	app->programUniformTexture = glGetUniformLocation(texturedGeometryProgram.handle, "uTexture");
 
+	// Textures 
+	app->diceTexIdx = LoadTexture2D(app, "dice.png");
+	app->whiteTexIdx = LoadTexture2D(app, "color_white.png");
+	app->blackTexIdx = LoadTexture2D(app, "color_black.png");
+	app->normalTexIdx = LoadTexture2D(app, "color_normal.png");
+	app->magentaTexIdx = LoadTexture2D(app, "color_magenta.png");
+
+
+
+
 	//--------------------- PATRICK ---------------------- //
 
-
-	//Model
+	// Model ----------
 	app->model = LoadModel(app, "Patrick/Patrick.obj");
 	
-
-	//Program
+	// Program ----------
 	app->texturedMeshProgramIdx = LoadProgram(app, "shaders.glsl", "SHOW_TEXTURED_MESH");
 	Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
 
-	//Attributes Program
+	// Attributes Program ----------
 	int attributeCount;
 	glGetProgramiv(texturedMeshProgram.handle, GL_ACTIVE_ATTRIBUTES, &attributeCount);
 
@@ -258,16 +266,14 @@ void Init(App* app)
 		GLint attributeLocation = glGetAttribLocation(texturedMeshProgram.handle, attributeName);
 		texturedMeshProgram.vertexInputLayout.attributes.push_back({(u8)attributeLocation,(u8)attributeSize }); // position
 	}
-	
-	// Textures 
-	app->diceTexIdx = LoadTexture2D(app, "dice.png");
-	app->whiteTexIdx = LoadTexture2D(app, "color_white.png");
-	app->blackTexIdx = LoadTexture2D(app, "color_black.png");
-	app->normalTexIdx = LoadTexture2D(app, "color_normal.png");
-	app->magentaTexIdx = LoadTexture2D(app, "color_magenta.png");
+
+	// Uniform blocks ---------
+	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &app->maxUniformBufferSize);
+	glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &app->uniformBlockAlignment);
+	app->ubuffer = CreateBuffer(app->maxUniformBufferSize, GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
 
 
-    app->mode = Mode_TexturedMesh;
+    app->mode = Mode_Model;
 }
 
 void Gui(App* app)
@@ -302,13 +308,25 @@ void Gui(App* app)
 void Update(App* app)
 {
     // You can handle app->input keyboard/mouse here
+
+	app->worldViewProjectionMatrix = app->projectionMatrix * app->viewMatrix * app->worldMatrix;
+
+
+	//Update uniform blocks ------
+	MapBuffer(app->ubuffer, GL_WRITE_ONLY);
+
+	PushAlignedData(app->ubuffer, value_ptr(app->worldMatrix), sizeof(app->worldMatrix), sizeof(vec4));
+	PushAlignedData(app->ubuffer, value_ptr(app->worldViewProjectionMatrix), sizeof(app->worldViewProjectionMatrix), sizeof(vec4));
+
+	UnmapBuffer(app->ubuffer);
 }
 
 void Render(App* app)
 {
 	// Clear the screen (also ImGui...)
-	//glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, app->displaySize.x, app->displaySize.y);
 
     switch (app->mode)
     {
@@ -324,11 +342,7 @@ void Render(App* app)
                 // - bind the vao
                 // - glDrawElements() !!!
 
-				glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-				glViewport(0, 0, app->displaySize.x, app->displaySize.y);
-
+				
 				Program& programTexturedGeometry = app->programs[app->texturedGeometryProgramIdx];
 				glUseProgram(programTexturedGeometry.handle);
 				glBindVertexArray(app->vao);
@@ -348,15 +362,13 @@ void Render(App* app)
 
             }
             break;
-		case Mode::Mode_TexturedMesh:
+		case Mode::Mode_Model:
 		{
-			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			glViewport(0, 0, app->displaySize.x, app->displaySize.y);
-
+			
 			Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
 			glUseProgram(texturedMeshProgram.handle);
+
+			glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->blockOffset, app->blockSize);
 
 			Model& model = app->models[app->model];
 			Mesh& mesh = app->meshes[model.meshIdx];

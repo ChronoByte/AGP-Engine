@@ -8,6 +8,9 @@
 #include <glad/glad.h>
 #include "geometry.h"
 #include "assimp_model_loading.h"
+#include "buffer_management.h"
+
+#define BINDING(b) b
 
 typedef glm::vec2  vec2;
 typedef glm::vec3  vec3;
@@ -52,7 +55,7 @@ struct GLInfo
 enum Mode
 {
     Mode_TexturedQuad,
-	Mode_TexturedMesh,
+	Mode_Model,
     Mode_Count
 };
 
@@ -112,6 +115,20 @@ struct App
 
 	u32 model;
 	u32 texturedMeshProgram_uTexture;
+
+	// Uniform blocks
+	Buffer ubuffer;
+	GLint maxUniformBufferSize;
+	GLint uniformBlockAlignment;
+	u32 blockOffset;
+	u32 blockSize;
+
+	// Transformations (temporal i guess)
+	glm::mat4 worldMatrix;
+	glm::mat4 viewMatrix;
+	glm::mat4 projectionMatrix;
+	glm::mat4 worldViewProjectionMatrix;
+
 };
 
 
