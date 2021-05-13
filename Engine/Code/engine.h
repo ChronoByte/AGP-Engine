@@ -6,6 +6,7 @@
 
 #include "platform.h"
 #include <glad/glad.h>
+#include "geometry.h"
 
 typedef glm::vec2  vec2;
 typedef glm::vec3  vec3;
@@ -34,6 +35,7 @@ struct Program
     std::string        filepath;
     std::string        programName;
     u64                lastWriteTimestamp; // What is this for?
+	VertexShaderLayout vertexInputLayout;
 };
 
 struct GLInfo
@@ -49,6 +51,7 @@ struct GLInfo
 enum Mode
 {
     Mode_TexturedQuad,
+	Mode_TexturedMesh,
     Mode_Count
 };
 
@@ -67,11 +70,19 @@ struct App
 
     ivec2 displaySize;
 
-    std::vector<Texture>  textures;
-    std::vector<Program>  programs;
+    //std::vector<Texture>  textures;
+    //std::vector<Program>  programs;
+
+	//Resources
+	std::vector<Material>   materials;
+	std::vector<Mesh>       meshes;
+	std::vector<Model>      models;
+	std::vector<Texture>  textures;
+	std::vector<Program>  programs;
 
     // program indices
     u32 texturedGeometryProgramIdx;
+	u32 texturedMeshProgramIdx;
     
     // texture indices
     u32 diceTexIdx;
@@ -85,7 +96,7 @@ struct App
 
 	// OpenGL info
 	GLInfo info;
-	bool show_opengl_info = false;
+	bool show_opengl_info = true;
 
     // Embedded geometry (in-editor simple meshes such as
     // a screen filling quad, a cube, a sphere...)
@@ -97,7 +108,11 @@ struct App
 
     // VAO object to link our screen filling quad with our textured quad shader
     GLuint vao;
+
+	u32 model;
+	u32 texturedMeshProgram_uTexture;
 };
+
 
 void Init(App* app);
 
@@ -107,3 +122,6 @@ void Update(App* app);
 
 void Render(App* app);
 
+u32 LoadTexture2D(App* app, const char* filepath);
+
+GLuint FindVAO(Mesh& mesh, u32 submeshIndex, const Program& program);

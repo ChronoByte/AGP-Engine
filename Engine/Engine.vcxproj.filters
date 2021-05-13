@@ -51,6 +51,7 @@
     <ClCompile Include="ThirdParty\stb\stb.cpp">
       <Filter>Stb</Filter>
     </ClCompile>
+    <ClCompile Include="Code\assimp_model_loading.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\imgui-docking\imconfig.h">
@@ -95,6 +96,7 @@
     <ClInclude Include="geometry.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="Code\geometry.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="WorkingDir\shaders.glsl">
