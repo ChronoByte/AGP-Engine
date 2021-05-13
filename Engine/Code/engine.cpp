@@ -282,8 +282,8 @@ void Init(App* app)
 	// Uniform blocks ---------
 	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &app->maxUniformBufferSize);
 	glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &app->uniformBlockAlignment);
-	app->ubuffer = CreateBuffer(app->maxUniformBufferSize, GL_UNIFORM_BUFFER, GL_STREAM_DRAW);
-
+	app->ubuffer = CreateConstantBuffer(app->maxUniformBufferSize);
+	
 	// Model ----------
 	app->model = LoadModel(app, "Patrick/Patrick.obj");
 	
@@ -338,9 +338,9 @@ void Update(App* app)
 	app->ubuffer.head = Align(app->ubuffer.head, app->uniformBlockAlignment);
 	app->blockOffset = app->ubuffer.head;
 
-	PushAlignedData(app->ubuffer, value_ptr(app->worldMatrix), sizeof(app->worldMatrix), sizeof(vec4));
-	PushAlignedData(app->ubuffer, value_ptr(app->worldViewProjectionMatrix), sizeof(app->worldViewProjectionMatrix), sizeof(vec4));
-	
+	PushMat4(app->ubuffer, app->worldMatrix);
+	PushMat4(app->ubuffer, app->worldViewProjectionMatrix);
+
 	app->blockSize = app->ubuffer.head - app->blockOffset;
 
 	UnmapBuffer(app->ubuffer);
