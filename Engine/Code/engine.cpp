@@ -231,6 +231,34 @@ void Init(App* app)
 	Program& texturedGeometryProgram = app->programs[app->texturedGeometryProgramIdx];
 	app->programUniformTexture = glGetUniformLocation(texturedGeometryProgram.handle, "uTexture");
 
+	//--------------------- PATRICK ---------------------- //
+
+
+	//Model
+	app->model = LoadModel(app, "Patrick/Patrick.obj");
+	
+
+	//Program
+	app->texturedMeshProgramIdx = LoadProgram(app, "shaders.glsl", "SHOW_TEXTURED_MESH");
+	Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
+
+	//Attributes Program
+	int attributeCount;
+	glGetProgramiv(texturedMeshProgram.handle, GL_ACTIVE_ATTRIBUTES, &attributeCount);
+
+	GLchar attributeName[64];
+	GLsizei attributeNameLength;
+	GLint attributeSize;
+	GLenum attributeType;
+
+	for (int i = 0; i < attributeCount; ++i)
+	{
+		glGetActiveAttrib(texturedMeshProgram.handle, i, ARRAY_COUNT(attributeName), &attributeNameLength, &attributeSize, &attributeType, attributeName);
+
+		GLint attributeLocation = glGetAttribLocation(texturedMeshProgram.handle, attributeName);
+		texturedMeshProgram.vertexInputLayout.attributes.push_back({(u8)attributeLocation,(u8)attributeSize }); // position
+	}
+	
 	// Textures 
 	app->diceTexIdx = LoadTexture2D(app, "dice.png");
 	app->whiteTexIdx = LoadTexture2D(app, "color_white.png");
@@ -238,11 +266,6 @@ void Init(App* app)
 	app->normalTexIdx = LoadTexture2D(app, "color_normal.png");
 	app->magentaTexIdx = LoadTexture2D(app, "color_magenta.png");
 
-	app->texturedMeshProgramIdx = LoadProgram(app, "shaders.glsl", "SHOW_TEXTURED_MESH");
-	Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
-	texturedMeshProgram.vertexInputLayout.attributes.push_back({0, 3});
-	texturedMeshProgram.vertexInputLayout.attributes.push_back({2, 2});
-	app->model = LoadModel(app, "Patrick/Patrick.obj");
 
     app->mode = Mode_TexturedMesh;
 }
