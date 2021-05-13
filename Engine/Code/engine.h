@@ -7,6 +7,7 @@
 #include "platform.h"
 #include <glad/glad.h>
 #include "geometry.h"
+#include "assimp_model_loading.h"
 
 typedef glm::vec2  vec2;
 typedef glm::vec3  vec3;

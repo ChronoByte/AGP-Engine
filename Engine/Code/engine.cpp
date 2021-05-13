@@ -238,9 +238,13 @@ void Init(App* app)
 	app->normalTexIdx = LoadTexture2D(app, "color_normal.png");
 	app->magentaTexIdx = LoadTexture2D(app, "color_magenta.png");
 
+	app->texturedMeshProgramIdx = LoadProgram(app, "shaders.glsl", "SHOW_TEXTURED_MESH");
+	Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
+	texturedMeshProgram.vertexInputLayout.attributes.push_back({0, 3});
+	texturedMeshProgram.vertexInputLayout.attributes.push_back({2, 2});
+	app->model = LoadModel(app, "Patrick/Patrick.obj");
 
-
-    app->mode = Mode_TexturedQuad;
+    app->mode = Mode_TexturedMesh;
 }
 
 void Gui(App* app)

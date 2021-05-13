@@ -33,10 +33,10 @@
     <ClCompile Include="ThirdParty\stb\stb.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Code\assimp_model_loading.h" />
     <ClInclude Include="Code\engine.h" />
     <ClInclude Include="Code\geometry.h" />
     <ClInclude Include="Code\platform.h" />
-    <ClInclude Include="geometry.h" />
     <ClInclude Include="ThirdParty\glad\include\glad\glad.h" />
     <ClInclude Include="ThirdParty\glad\include\glad\khrplatform.h" />
     <ClInclude Include="ThirdParty\imgui-docking\imconfig.h" />
