@@ -95,14 +95,33 @@ in vec2 vTexCoord;
 in vec3 vPosition; // in worldspace
 in vec3 vNormal; // in worldspace
 
-
 uniform sampler2D uTexture;
 
-layout(location = 0) out vec4 oColor;
+struct Light {
+	unsigned int type; 
+	vec3 position;
+	vec3 color; 
+	vec3 direction;
+};
+
+layout(binding = 0, std140) uniform GlobalParams
+{
+	unsigned int uLightCount; 
+	Light uLights[16];
+};
+
+
+layout(location = 0) out vec4 FragColor;
 
 void main()
 {
-	oColor = texture(uTexture, vTexCoord);
+	vec3 lightColorInfluence = vec3(0.0);
+	for(int i = 0; i < uLightCount; ++i)
+	{
+		lightColorInfluence += uLights[i].color;
+	}
+
+	FragColor = texture(uTexture, vTexCoord) * vec4(lightColorInfluence, 1.0);
 }
 
 #endif

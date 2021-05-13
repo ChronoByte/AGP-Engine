@@ -313,9 +313,9 @@ void Init(App* app)
 
 	// Lights -----------
 
-	app->lights.push_back(Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
+	app->lights.push_back(Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 	app->lights.push_back(Light(glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
-   
+	
 }
 
 void Gui(App* app)
@@ -360,14 +360,20 @@ void Update(App* app)
 	MapBuffer(app->gpBuffer, GL_WRITE_ONLY);
 	app->globalParamsOffset = app->gpBuffer.head;
 
+	PushUInt(app->gpBuffer, app->lights.size());
+
 	for (u32 i = 0; i < app->lights.size(); ++i)
 	{
+		AlignHead(app->gpBuffer, sizeof(vec4));
+
 		const Light& light = app->lights[i];
 		PushUInt(app->gpBuffer, static_cast<u32>(light.type));
 		PushVec3(app->gpBuffer, light.position);
 		PushVec3(app->gpBuffer, light.color);
 		PushVec3(app->gpBuffer, light.direction);
 	}
+
+	app->globalParamsSize = app->gpBuffer.head - app->globalParamsOffset;
 
 	UnmapBuffer(app->gpBuffer);
 
