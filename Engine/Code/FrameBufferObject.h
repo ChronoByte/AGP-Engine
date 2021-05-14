@@ -34,6 +34,8 @@ public:
 	void Unbind(); 
 
 
+	u32 GetTexture(RenderTargetType textureType);
+
 private:
 
 	float width = 0.f;

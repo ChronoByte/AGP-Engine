@@ -360,6 +360,8 @@ void Gui(App* app)
 
 		ImGui::End();
 	}
+
+	ImGui::Image((ImTextureID)app->fbo.GetTexture(RENDER_TEXTURE), ImVec2(app->displaySize.x, app->displaySize.y), ImVec2(1, 1), ImVec2(0,0));
 }
 
 
@@ -456,6 +458,8 @@ void Render(App* app)
 		case Mode::Mode_Model:
 		{
 			
+			app->fbo.Bind();
+
 			Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
 			glUseProgram(texturedMeshProgram.handle);
 
@@ -511,10 +515,10 @@ void Render(App* app)
 						glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
 					}
 
-				}
-				
-				
+				}		
 			}
+
+			app->fbo.Unbind();
 		}
 		break;
 
