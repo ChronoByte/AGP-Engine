@@ -494,26 +494,28 @@ void Render(App* app)
 			}
 
 			app->fbo.Unbind();
-		}
+       
+		default:;
+
 		break;
+		}
 
-
-        default:;
-    }
+	glBindVertexArray(0);
+	glUseProgram(0);
 
 	/*Mesh& mesh = app->meshes[app->plane];
 	Submesh& submesh = mesh.submeshes[0];
 
 	glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);*/
+    }
 
-	glBindVertexArray(0);
-	glUseProgram(0);
+
 
 
 
 	
 
-}
+
 
 GLuint FindVAO(Mesh& mesh, u32 submeshIndex, const Program& program)
 {
