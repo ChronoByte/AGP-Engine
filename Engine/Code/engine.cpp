@@ -507,33 +507,22 @@ void Render(App* app)
 	glUseProgram(0);
 
 
-	/*glBindVertexArray(app->vao);
-	glBindTexture(GL_TEXTURE_2D, app->fbo.GetTexture(RENDER_TEXTURE));
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-	glBindVertexArray(0);*/
+	// --------------------------------------- RENDER SCREEN QUAD -------------------------------------
 
+	Program& programTexturedGeometry = app->programs[app->texturedGeometryProgramIdx];
+	glUseProgram(programTexturedGeometry.handle);
 
-	/*glBindVertexArray(0);
+	glUniform1i(app->programUniformTexture, 0);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, app->fbo.GetTexture(RENDER_TEXTURE));
+
 	renderQuad(app);
-	glBindTexture(GL_TEXTURE_2D, 0);*/
 
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUseProgram(0);
 
-	GLuint readFboId = 0;
-	glGenFramebuffers(1, &readFboId);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFboId);
-	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-		GL_TEXTURE_2D, app->fbo.GetTexture(RENDER_TEXTURE), 0);
-	glBlitFramebuffer(0, 0, app->displaySize.x, app->displaySize.y,
-		0, 0, app->displaySize.x, app->displaySize.y,
-		GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-	glDeleteFramebuffers(1, &readFboId);
-
-	/*Mesh& mesh = app->meshes[app->plane];
-	Submesh& submesh = mesh.submeshes[0];
-
-	glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);*/
+	// -------------------------------------------------------------------------------------------------
+	
 }
 
 unsigned int quadVAO = 0;
@@ -550,6 +539,7 @@ void renderQuad(App* app)
 			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
 			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 		};
+
 		// setup plane VAO
 		glGenVertexArrays(1, &quadVAO);
 		glGenBuffers(1, &quadVBO);
@@ -558,8 +548,8 @@ void renderQuad(App* app)
 		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	}
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
