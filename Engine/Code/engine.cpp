@@ -422,6 +422,7 @@ void Render(App* app)
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, app->displaySize.x, app->displaySize.y);
+	glEnable(GL_DEPTH_TEST);
 
     switch (app->mode)
     {
