@@ -464,9 +464,8 @@ void Render(App* app)
 			for (int i = 0; i < app->entities.size(); ++i)
 			{
 				
-				if (app->entities[i].type == EntityType::PATRICK)
-				{
-					Model& model = app->models[app->model];
+				
+					Model& model = app->models[app->entities[i].modelIndex];
 					Mesh& mesh = app->meshes[model.meshIdx];
 					glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
 
@@ -487,31 +486,7 @@ void Render(App* app)
 						glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
 					}
 
-				}
-				else if (app->entities[i].type == EntityType::PLANE)
-				{
-					Model& model = app->models[app->plane];
-					Mesh& mesh = app->meshes[model.meshIdx];
-					glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
-
-
-					for (u32 i = 0; i < mesh.submeshes.size(); ++i)
-					{
-						GLuint vao = FindVAO(mesh, i, texturedMeshProgram);
-						glBindVertexArray(vao);
-
-						u32 submeshMaterialIdx = model.materialIdx[i];
-						Material& submeshMaterial = app->materials[submeshMaterialIdx];
-
-						glActiveTexture(GL_TEXTURE0);
-						glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
-						glUniform1i(app->texturedMeshProgram_uTexture, 0);
-
-						Submesh& submesh = mesh.submeshes[i];
-						glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
-					}
-
-				}
+				
 				
 				
 			}
@@ -591,35 +566,6 @@ GLuint FindVAO(Mesh& mesh, u32 submeshIndex, const Program& program)
 	return vaoHandle;
 }
 
-unsigned int quadVAO = 0;
-unsigned int quadVBO;
-void renderQuad(App* app)
-{
-	if (quadVAO == 0)
-	{
-		float quadVertices[] =
-		{
-			// positions        // texture Coords
-			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-		};
-		// setup plane VAO
-		glGenVertexArrays(1, &quadVAO);
-		glGenBuffers(1, &quadVBO);
-		glBindVertexArray(quadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	}
-	glBindVertexArray(quadVAO);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
-}
 
 glm::mat4 TransformScale(const vec3& scaleFactors)
 {
