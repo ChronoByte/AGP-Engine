@@ -113,7 +113,7 @@
     <ClInclude Include="Light.h">
       <Filter>Engine</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="Code\Camera.h">
       <Filter>Engine</Filter>
     </ClInclude>
   </ItemGroup>
