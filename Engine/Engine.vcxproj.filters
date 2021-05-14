@@ -58,6 +58,9 @@
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="Code\Camera.cpp" />
+    <ClCompile Include="Code\geometry.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\imgui-docking\imconfig.h">

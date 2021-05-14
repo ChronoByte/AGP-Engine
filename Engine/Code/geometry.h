@@ -1,7 +1,10 @@
 #pragma once
 
+//#include "engine.h"
+struct App;
+typedef unsigned int u32;
+#include <glad/glad.h>
 #include "platform.h"
-
 
 //TEXTURED QUAD --------
 struct VertexV3V2
@@ -90,3 +93,13 @@ struct Model
 	u32					meshIdx;
 	std::vector<u32>	materialIdx;
 };
+
+struct Geometry
+{
+	std::vector<float> vertices;
+	std::vector<u32> indices;
+
+	Model planeModel;
+	u32 LoadPlane(App* app);
+};
+

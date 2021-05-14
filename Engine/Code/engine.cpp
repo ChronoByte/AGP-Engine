@@ -295,20 +295,23 @@ void Init(App* app)
 
 	// Model ----------
 	app->model = LoadModel(app, "Patrick/Patrick.obj");
-
+	app->plane = app->geo.LoadPlane(app);
 	app->mode = Mode_Model;
 
 	//Entities --------
+	Entity e0 = Entity(glm::mat4(1.0), app->plane, 0, 0, EntityType::PLANE);
+	e0.worldMatrix = glm::translate(e0.worldMatrix, vec3(0.0, -1.0, 0.0));
+	app->entities.push_back(e0);
 
-	Entity e1 = Entity(glm::mat4(1.0), app->model, 0, 0);
+	Entity e1 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
 	e1.worldMatrix = glm::translate(e1.worldMatrix, vec3(3.0, 1.0, -6.0));
 	app->entities.push_back(e1);
 
-	Entity e3 = Entity(glm::mat4(1.0), app->model, 0, 0);
+	Entity e3 = Entity(glm::mat4(1.0), app->model, 0, 0,EntityType::PATRICK);
 	e3.worldMatrix = glm::translate(e3.worldMatrix, vec3(-3.0, 1.0, -6.0));
 	app->entities.push_back(e3);
 
-	Entity e2 = Entity(glm::mat4(1.0), app->model, 0, 0);
+	Entity e2 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
 	e2.worldMatrix = glm::translate(e2.worldMatrix, vec3(0.0, 1.0, 2.0));
 	app->entities.push_back(e2);
 
@@ -457,26 +460,57 @@ void Render(App* app)
 
 			for (int i = 0; i < app->entities.size(); ++i)
 			{
-				Model& model = app->models[app->model];
-				Mesh& mesh = app->meshes[model.meshIdx];
-				glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
-
-
-				for (u32 i = 0; i < mesh.submeshes.size(); ++i)
+				
+				if (app->entities[i].type == EntityType::PATRICK)
 				{
-					GLuint vao = FindVAO(mesh, i, texturedMeshProgram);
-					glBindVertexArray(vao);
+					Model& model = app->models[app->model];
+					Mesh& mesh = app->meshes[model.meshIdx];
+					glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
 
-					u32 submeshMaterialIdx = model.materialIdx[i];
-					Material& submeshMaterial = app->materials[submeshMaterialIdx];
 
-					glActiveTexture(GL_TEXTURE0);
-					glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
-					glUniform1i(app->texturedMeshProgram_uTexture, 0);
+					for (u32 i = 0; i < mesh.submeshes.size(); ++i)
+					{
+						GLuint vao = FindVAO(mesh, i, texturedMeshProgram);
+						glBindVertexArray(vao);
 
-					Submesh& submesh = mesh.submeshes[i];
-					glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
+						u32 submeshMaterialIdx = model.materialIdx[i];
+						Material& submeshMaterial = app->materials[submeshMaterialIdx];
+
+						glActiveTexture(GL_TEXTURE0);
+						glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
+						glUniform1i(app->texturedMeshProgram_uTexture, 0);
+
+						Submesh& submesh = mesh.submeshes[i];
+						glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
+					}
+
 				}
+				else if (app->entities[i].type == EntityType::PLANE)
+				{
+					Model& model = app->models[app->plane];
+					Mesh& mesh = app->meshes[model.meshIdx];
+					glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
+
+
+					for (u32 i = 0; i < mesh.submeshes.size(); ++i)
+					{
+						GLuint vao = FindVAO(mesh, i, texturedMeshProgram);
+						glBindVertexArray(vao);
+
+						u32 submeshMaterialIdx = model.materialIdx[i];
+						Material& submeshMaterial = app->materials[submeshMaterialIdx];
+
+						glActiveTexture(GL_TEXTURE0);
+						glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
+						glUniform1i(app->texturedMeshProgram_uTexture, 0);
+
+						Submesh& submesh = mesh.submeshes[i];
+						glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
+					}
+
+				}
+				
+				
 			}
 		}
 		break;
@@ -485,8 +519,18 @@ void Render(App* app)
         default:;
     }
 
+	/*Mesh& mesh = app->meshes[app->plane];
+	Submesh& submesh = mesh.submeshes[0];
+
+	glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);*/
+
 	glBindVertexArray(0);
 	glUseProgram(0);
+
+
+
+	
+
 }
 
 GLuint FindVAO(Mesh& mesh, u32 submeshIndex, const Program& program)

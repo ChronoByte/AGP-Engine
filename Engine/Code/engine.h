@@ -120,6 +120,7 @@ struct App
 	u32 model;
 	u32 plane;
 	u32 texturedMeshProgram_uTexture;
+	Geometry geo;
 
 	// ------- Uniform blocks ---------- 
 
