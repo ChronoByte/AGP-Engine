@@ -109,3 +109,24 @@ void FrameBufferObject::Resize(float _width, float _height)
 
 	UpdateFBO();
 }
+
+void FrameBufferObject::Bind()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, IDs[FBO]);
+
+	GLuint drawBuffers[] = { IDs[RENDER_TEXTURE] };
+	glDrawBuffers(ARRAY_COUNT(drawBuffers), drawBuffers);
+
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+}
+
+void FrameBufferObject::Unbind()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+u32 FrameBufferObject::GetTexture(RenderTargetType textureType)
+{
+	return IDs[textureType];
+}
