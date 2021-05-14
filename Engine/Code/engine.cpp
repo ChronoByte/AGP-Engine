@@ -300,7 +300,9 @@ void Init(App* app)
 
 	//Entities --------
 	Entity e0 = Entity(glm::mat4(1.0), app->plane, 0, 0, EntityType::PLANE);
-	e0.worldMatrix = glm::translate(e0.worldMatrix, vec3(0.0, -1.0, 0.0));
+	//e0.worldMatrix = glm::translate(e0.worldMatrix, vec3(0.0, -1.0, 0.0));
+	e0.worldMatrix = TransformPositionScale(vec3(0.0, -1.0, 0.0), vec3(100.0, 1.0, 100.0));
+	e0.worldMatrix = TransformRotation(e0.worldMatrix, 88, { 1, 0, 0 });
 	app->entities.push_back(e0);
 
 	Entity e1 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
@@ -616,4 +618,24 @@ void renderQuad(App* app)
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
+}
+
+glm::mat4 TransformScale(const vec3& scaleFactors)
+{
+	glm::mat4 transform = scale(scaleFactors);
+	return scale(scaleFactors);
+}
+
+glm::mat4 TransformPositionScale(const vec3& pos, const vec3& scaleFactors)
+{
+	glm::mat4 transform = translate(pos);
+	transform = scale(transform, scaleFactors);
+	return transform;
+}
+
+glm::mat4 TransformRotation(const glm::mat4& matrix, float angle, vec3 axis)
+{
+	float radians = glm::radians(angle);
+	glm::mat4 transform = glm::rotate(matrix, radians, axis);
+	return transform;
 }

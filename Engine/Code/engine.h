@@ -170,4 +170,7 @@ u32 LoadTexture2D(App* app, const char* filepath);
 
 GLuint FindVAO(Mesh& mesh, u32 submeshIndex, const Program& program);
 
-void renderQuad(App* app);
+//Transformations
+glm::mat4 TransformScale(const vec3& scaleFactors);
+glm::mat4 TransformPositionScale(const vec3& pos, const vec3& scaleFactors);
+glm::mat4 TransformRotation(const glm::mat4& matrix, float angle, vec3 axis);
