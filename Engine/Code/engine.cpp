@@ -296,6 +296,7 @@ void Init(App* app)
 	// Model ----------
 	app->model = LoadModel(app, "Patrick/Patrick.obj");
 	app->plane = app->geo.LoadPlane(app);
+	app->sphere = app->geo.LoadSphere(app);
 	app->mode = Mode_Model;
 
 	//Entities --------
@@ -316,6 +317,10 @@ void Init(App* app)
 	Entity e2 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
 	e2.worldMatrix = glm::translate(e2.worldMatrix, vec3(0.0, 1.0, 2.0));
 	app->entities.push_back(e2);
+
+	Entity e4 = Entity(glm::mat4(1.0), app->sphere, 0, 0, EntityType::SPHERE);
+	e4.worldMatrix = glm::translate(e4.worldMatrix, vec3(0.0, 5.0, 2.0));
+	app->entities.push_back(e4);
 
 	// Lights -----------
 

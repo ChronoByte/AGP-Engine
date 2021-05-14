@@ -57,11 +57,13 @@
     <ClCompile Include="Code\buffer_management.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="Code\Camera.cpp" />
     <ClCompile Include="Code\geometry.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="Code\FrameBufferObject.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Code\Camera.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
   </ItemGroup>
