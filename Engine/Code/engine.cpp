@@ -343,9 +343,15 @@ void Gui(App* app)
 		ImGui::Text("OpenGL renderer: %s", app->info.renderer.c_str());
 		ImGui::Text("GPU vendor: %s", app->info.vendor.c_str());
 		ImGui::Text("GLSL version: %s", app->info.shadingLanguageVersion.c_str());
+		//for (int i = 0; i < app->info.extensions.size(); ++i)
+			//ImGui::Text("Extension %i: %s", i, app->info.extensions[i].c_str());
 
-		for (int i = 0; i < app->info.extensions.size(); ++i)
-			ImGui::Text("Extension %i: %s", i, app->info.extensions[i].c_str());
+		// Camera information -------------------
+		ImGui::Separator();
+		ImGui::Text("Camera");
+		ImGui::DragFloat3("Position", &app->camera.position.x);
+		
+
 		ImGui::End();
 	}
 }
@@ -355,7 +361,8 @@ void Gui(App* app)
 void Update(App* app)
 {
     // You can handle app->input keyboard/mouse here
-	
+	app->camera.Update(app);
+
 	// Global params
 
 	MapBuffer(app->gpBuffer, GL_WRITE_ONLY);

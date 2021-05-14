@@ -57,6 +57,7 @@
     <ClCompile Include="Code\buffer_management.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="Code\Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\imgui-docking\imconfig.h">
