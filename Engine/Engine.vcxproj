@@ -23,6 +23,7 @@
     <ClCompile Include="Code\buffer_management.cpp" />
     <ClCompile Include="Code\Camera.cpp" />
     <ClCompile Include="Code\engine.cpp" />
+    <ClCompile Include="Code\FrameBufferObject.cpp" />
     <ClCompile Include="Code\geometry.cpp" />
     <ClCompile Include="Code\platform.cpp" />
     <ClCompile Include="ThirdParty\glad\include\glad\glad.c" />
@@ -41,6 +42,7 @@
     <ClInclude Include="Code\Camera.h" />
     <ClInclude Include="Code\engine.h" />
     <ClInclude Include="Code\Entity.h" />
+    <ClInclude Include="Code\FrameBufferObject.h" />
     <ClInclude Include="Code\geometry.h" />
     <ClInclude Include="Code\platform.h" />
     <ClInclude Include="Light.h" />

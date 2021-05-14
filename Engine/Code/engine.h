@@ -12,6 +12,7 @@
 #include "Entity.h"
 #include "Light.h"
 #include "Camera.h"
+#include "FrameBufferObject.h"
 
 #define BINDING(b) b
 
@@ -59,7 +60,15 @@ enum Mode
 {
     Mode_TexturedQuad,
 	Mode_Model,
-    Mode_Count
+    Mode_Count,
+    Mode_FBO
+};
+
+enum FBO_TextureDisplay
+{
+    Final_Render,
+    Normals,
+    Albedo
 };
 
 struct App
@@ -155,6 +164,8 @@ struct App
 	//Camera
 	Camera camera;
 
+    //FBO
+    FrameBufferObject fbo;
 };
 
 

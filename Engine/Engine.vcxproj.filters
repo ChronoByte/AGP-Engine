@@ -61,6 +61,9 @@
     <ClCompile Include="Code\geometry.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="Code\FrameBufferObject.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThirdParty\imgui-docking\imconfig.h">
@@ -118,6 +121,9 @@
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="Code\Camera.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Code\FrameBufferObject.h">
       <Filter>Engine</Filter>
     </ClInclude>
   </ItemGroup>

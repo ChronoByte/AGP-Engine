@@ -322,6 +322,7 @@ void Init(App* app)
 	app->lights.push_back(Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 	app->lights.push_back(Light(glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
 	
+	app->fbo.Initialize(app->displaySize.x, app->displaySize.y);
 }
 
 void Gui(App* app)
