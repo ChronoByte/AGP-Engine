@@ -423,8 +423,8 @@ void Render(App* app)
 
     switch (app->mode)
     {
-	case Mode::Mode_TexturedQuad:
-            {
+		case Mode::Mode_TexturedQuad:
+        {
                 // TODO: Draw your textured quad here!
                 // - clear the framebuffer
                 // - set the viewport
@@ -453,8 +453,9 @@ void Render(App* app)
 				glBindVertexArray(0);
 				glUseProgram(0);
 
-            }
-            break;
+        }
+        break;
+
 		case Mode::Mode_Model:
 		{
 			
@@ -468,36 +469,36 @@ void Render(App* app)
 			for (int i = 0; i < app->entities.size(); ++i)
 			{
 				
-				
-					Model& model = app->models[app->entities[i].modelIndex];
-					Mesh& mesh = app->meshes[model.meshIdx];
-					glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
+				Model& model = app->models[app->entities[i].modelIndex];
+				Mesh& mesh = app->meshes[model.meshIdx];
+				glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
 
 
-					for (u32 i = 0; i < mesh.submeshes.size(); ++i)
-					{
-						GLuint vao = FindVAO(mesh, i, texturedMeshProgram);
-						glBindVertexArray(vao);
+				for (u32 i = 0; i < mesh.submeshes.size(); ++i)
+				{
+					GLuint vao = FindVAO(mesh, i, texturedMeshProgram);
+					glBindVertexArray(vao);
 
-						u32 submeshMaterialIdx = model.materialIdx[i];
-						Material& submeshMaterial = app->materials[submeshMaterialIdx];
+					u32 submeshMaterialIdx = model.materialIdx[i];
+					Material& submeshMaterial = app->materials[submeshMaterialIdx];
 
-						glActiveTexture(GL_TEXTURE0);
-						glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
-						glUniform1i(app->texturedMeshProgram_uTexture, 0);
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
+					glUniform1i(app->texturedMeshProgram_uTexture, 0);
 
-						Submesh& submesh = mesh.submeshes[i];
-						glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
-					}
+					Submesh& submesh = mesh.submeshes[i];
+					glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
+				}
 
-				}		
-			}
+			}	
 
 			app->fbo.Unbind();
+		}
+		break;
        
 		default:;
-
 		break;
+
 		}
 
 	glBindVertexArray(0);
