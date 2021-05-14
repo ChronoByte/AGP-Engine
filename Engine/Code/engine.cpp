@@ -249,11 +249,12 @@ void Init(App* app)
 	
 
 	// Camera -----------
-	app->cameraPos = vec3(0.0f, 4.0f, 15.0f);
-	app->cameraRef = vec3(0.0f);
-
-	app->projectionMatrix = glm::perspective(glm::radians(60.0f), (float)app->displaySize.x/(float)app->displaySize.y, 0.1f, 1000.0f);
-	app->viewMatrix = glm::lookAt(app->cameraPos, app->cameraRef, glm::vec3(0, 1, 0));
+	app->camera.position = vec3(0.0f, 4.0f, 15.0f);
+	app->camera.target = vec3(0.0f);
+	
+	app->camera.aspect_ratio = (float)app->displaySize.x / (float)app->displaySize.y;
+	app->camera.projectionMatrix = glm::perspective(glm::radians(app->camera.vertical_fov), app->camera.aspect_ratio, app->camera.nearPlane, app->camera.farPlane);
+	app->camera.viewMatrix = glm::lookAt(app->camera.position, app->camera.target, glm::vec3(0, 1, 0));
 	
 	//app->worldMatrix = glm::mat4(1.0);
 	//app->worldMatrix = glm::translate(app->worldMatrix, vec3(0.0, 0.0, 0.0));
@@ -386,7 +387,9 @@ void Update(App* app)
 		app->ubuffer.head = Align(app->ubuffer.head, app->uniformBlockAlignment);
 		app->entities[i].localParamsOffset = app->ubuffer.head;
 
-		app->worldViewProjectionMatrix = app->projectionMatrix * app->viewMatrix * app->entities[i].worldMatrix;
+		app->worldMatrix = app->entities[i].worldMatrix;
+		app->worldViewProjectionMatrix = app->camera.projectionMatrix * app->camera.viewMatrix * app->entities[i].worldMatrix;
+
 		PushMat4(app->ubuffer, app->worldMatrix);
 		PushMat4(app->ubuffer, app->worldViewProjectionMatrix);
 

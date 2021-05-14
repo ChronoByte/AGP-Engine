@@ -113,6 +113,9 @@
     <ClInclude Include="Light.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="WorkingDir\shaders.glsl">

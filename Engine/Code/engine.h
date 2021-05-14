@@ -11,6 +11,7 @@
 #include "buffer_management.h"
 #include "Entity.h"
 #include "Light.h"
+#include "Camera.h"
 
 #define BINDING(b) b
 
@@ -149,6 +150,9 @@ struct App
 
     //Lights
     std::vector<Light> lights; 
+
+	//Camera
+	Camera camera;
 
 };
 
