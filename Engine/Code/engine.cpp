@@ -496,10 +496,10 @@ void Render(App* app)
 		}
 		break;
        
-		default:;
-		break;
+		default:
+			break;
 
-		}
+	}
 
 	glBindVertexArray(0);
 	glUseProgram(0);
@@ -508,15 +508,7 @@ void Render(App* app)
 	Submesh& submesh = mesh.submeshes[0];
 
 	glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);*/
-    }
-
-
-
-
-
-	
-
-
+}
 
 GLuint FindVAO(Mesh& mesh, u32 submeshIndex, const Program& program)
 {
