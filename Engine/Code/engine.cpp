@@ -272,16 +272,11 @@ void Init(App* app)
 	
 	// Camera -----------
 	app->camera = Camera(vec3(0.0f, 4.0f, 15.0f), vec3(-90.0f, 0.f, 0.f));
-	//app->camera.position = vec3(0.0f, 4.0f, 15.0f);
-	//app->camera.target = vec3(0.0f);
 	
 	app->camera.aspect_ratio = (float)app->displaySize.x / (float)app->displaySize.y;
 	app->camera.projectionMatrix = glm::perspective(glm::radians(app->camera.vertical_fov), app->camera.aspect_ratio, app->camera.nearPlane, app->camera.farPlane);
-	app->camera.viewMatrix = glm::lookAt(app->camera.position, app->camera.target, glm::vec3(0, 1, 0));
+	//app->camera.viewMatrix = glm::lookAt(app->camera.position, app->camera.target, glm::vec3(0, 1, 0));
 	
-	//app->worldMatrix = glm::mat4(1.0);
-	//app->worldMatrix = glm::translate(app->worldMatrix, vec3(0.0, 0.0, 0.0));
-
 
 	// Program ----------
 	app->texturedMeshProgramIdx = LoadProgram(app, "shaders.glsl", "SHOW_TEXTURED_MESH");
@@ -400,7 +395,7 @@ void Gui(App* app)
 		ImGui::DragFloat("Roll", &app->camera.roll);	
 		ImGui::PopItemWidth();
 
-
+		// Render target information -------------------
 		ImGui::Separator();
 		ImGui::Text("Render Targets");
 		const char* items[] = { "Default", "G_Position", "G_Normals", "G_Albedo", "Depth Texture" };

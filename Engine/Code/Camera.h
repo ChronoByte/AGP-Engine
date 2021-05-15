@@ -8,10 +8,10 @@ struct Camera
 {
 
 	Camera();
-	Camera(glm::vec3 pos, glm::vec3 target);
+	Camera(glm::vec3 pos, glm::vec3 rot);
 
-	glm::vec3 position = { 0, 0, -10 };
-	glm::vec3 target = { 0, 0, 0 };
+	glm::vec3 position;
+	glm::vec3 target; //deprecated
 
 	
 	glm::vec3 orientation;

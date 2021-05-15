@@ -6,7 +6,7 @@ Camera::Camera()
 }
 
 Camera::Camera(glm::vec3 pos, glm::vec3 rot)
-	:position(pos), target(rot)
+	:position(pos)
 {
 	yaw = rot.x;
 	pitch = rot.y;
