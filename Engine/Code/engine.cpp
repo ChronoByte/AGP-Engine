@@ -271,8 +271,9 @@ void Init(App* app)
 
 	
 	// Camera -----------
-	app->camera.position = vec3(0.0f, 4.0f, 15.0f);
-	app->camera.target = vec3(0.0f);
+	app->camera = Camera(vec3(0.0f, 4.0f, 15.0f), vec3(-90.0f, 0.f, 0.f));
+	//app->camera.position = vec3(0.0f, 4.0f, 15.0f);
+	//app->camera.target = vec3(0.0f);
 	
 	app->camera.aspect_ratio = (float)app->displaySize.x / (float)app->displaySize.y;
 	app->camera.projectionMatrix = glm::perspective(glm::radians(app->camera.vertical_fov), app->camera.aspect_ratio, app->camera.nearPlane, app->camera.farPlane);
@@ -383,8 +384,25 @@ void Gui(App* app)
 		// Camera information -------------------
 		ImGui::Separator();
 		ImGui::Text("Camera"); 
-		ImGui::DragFloat3("Position", &app->camera.position.x);
+		ImGui::PushItemWidth(100);
+		ImGui::DragFloat("X", &app->camera.position.x);  
+		ImGui::SameLine();
+		ImGui::DragFloat("Y", &app->camera.position.y); 
+		ImGui::SameLine();
+		ImGui::DragFloat("Z", &app->camera.position.z);
+		ImGui::PopItemWidth();
+		
+		ImGui::PushItemWidth(80);
+		ImGui::DragFloat("Yaw", &app->camera.yaw);
+		ImGui::SameLine();
+		ImGui::DragFloat("Pitch", &app->camera.pitch);
+		ImGui::SameLine();
+		ImGui::DragFloat("Roll", &app->camera.roll);	
+		ImGui::PopItemWidth();
 
+
+		ImGui::Separator();
+		ImGui::Text("Render Targets");
 		const char* items[] = { "Default", "G_Position", "G_Normals", "G_Albedo", "Depth Texture" };
 		static int item_current = 0;
 		if (ImGui::Combo("Render Target", &item_current, items, IM_ARRAYSIZE(items)))
