@@ -59,6 +59,8 @@ struct Light {
 
 layout(binding = 0, std140) uniform GlobalParams
 {
+
+	vec3 uCameraPosition;
 	unsigned int uLightCount; 
 	Light uLights[16];
 };
@@ -78,13 +80,14 @@ layout(location = 2) in vec2 aTexCoord;
 out vec2 vTexCoord;
 out vec3 vPosition; // in worldspace
 out vec3 vNormal; // in worldspace
-
+out vec3 viewDir;
 
 void main()
 {
 	vTexCoord = aTexCoord;
 	vPosition = vec3(uWorldMatrix * vec4(aPosition, 1.0));
 	vNormal = vec3(uWorldMatrix * vec4(aNormal, 0.0));
+	viewDir = uCameraPosition - vPosition;
 	gl_Position = uWorldViewProjectionMatrix * vec4(aPosition, 1.0);
 
 	//float clippingScale = 5.0;
@@ -99,6 +102,7 @@ void main()
 in vec2 vTexCoord;
 in vec3 vPosition; // in worldspace
 in vec3 vNormal; // in worldspace
+in vec3 viewDir; 
 
 uniform sampler2D uTexture;
 
@@ -111,6 +115,7 @@ struct Light {
 
 layout(binding = 0, std140) uniform GlobalParams
 {
+	vec3 uCameraPosition;
 	unsigned int uLightCount; 
 	Light uLights[16];
 };
@@ -118,16 +123,40 @@ layout(binding = 0, std140) uniform GlobalParams
 
 layout(location = 0) out vec4 FragColor;
 
+vec3 CalculateLighting(Light light, vec3 normal, vec3 viewDir, vec3 frag_pos);
+
 void main()
 {
 	vec3 lightColorInfluence = vec3(0.0);
 	for(int i = 0; i < uLightCount; ++i)
 	{
-		lightColorInfluence += uLights[i].color;
+		lightColorInfluence += CalculateLighting(uLights[i], vNormal, viewDir, vPosition);
 	}
 
 	FragColor = texture(uTexture, vTexCoord) * vec4(lightColorInfluence, 1.0);
 }
+
+vec3 CalculateLighting(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos)
+{
+
+	// ================= DIRECTIONAL =================
+
+	// Diffuse 
+	vec3 lightDirection = normalize(-light.direction);
+	float diff = max(dot(lightDirection, normal), 0.0);
+	vec3 diffuse = light.color * diff;
+
+	// Specular
+	// vec3 halfwayDir = normalize(lightDirection + view_dir);
+	// float spec = pow(max(dot(normal, halfwayDir), 0.0), 16);
+	// vec3 specular = light.color * spec;
+	vec3 specular = vec3(0.0);
+
+	vec3 result = vec3(0.0);
+	result = (diffuse + specular);
+	return result;
+}
+
 
 #endif
 #endif

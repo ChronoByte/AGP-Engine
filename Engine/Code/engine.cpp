@@ -341,8 +341,7 @@ void Init(App* app)
 	app->entities.push_back(e4);
 
 	// Lights -----------
-	app->lights.push_back(Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
-	app->lights.push_back(Light(glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+	app->lights.push_back(Light(glm::vec3(3.0f, 5.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
 	
 
 	// FBO --------------
@@ -421,6 +420,7 @@ void Update(App* app)
 	MapBuffer(app->gpBuffer, GL_WRITE_ONLY);
 	app->globalParamsOffset = app->gpBuffer.head;
 
+	PushVec3(app->gpBuffer, app->camera.position);
 	PushUInt(app->gpBuffer, app->lights.size());
 
 	for (u32 i = 0; i < app->lights.size(); ++i)
@@ -509,7 +509,7 @@ void Render(App* app)
 			
 			app->fbo.Bind();
 
-			Program& texturedMeshProgram = app->programs[app->geometryPassShaderID];
+			Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
 			glUseProgram(texturedMeshProgram.handle);
 
 			glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
