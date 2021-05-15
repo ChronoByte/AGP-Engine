@@ -128,19 +128,15 @@ vec3 CalculateLighting(Light light, vec3 normal, vec3 viewDir, vec3 frag_pos);
 void main()
 {
 	vec3 lightColorInfluence = vec3(0.0);
+	
 	for(int i = 0; i < uLightCount; ++i)
-	{
 		lightColorInfluence += CalculateLighting(uLights[i], vNormal, viewDir, vPosition);
-	}
 
 	FragColor = texture(uTexture, vTexCoord) * vec4(lightColorInfluence, 1.0);
 }
 
-vec3 CalculateLighting(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos)
+vec3 CalculateDirectionalLight(Light light, vec3 normal, vec3 view_dir)
 {
-
-	// ================= DIRECTIONAL =================
-
 	// Diffuse 
 	vec3 lightDirection = normalize(-light.direction);
 	float diff = max(dot(lightDirection, normal), 0.0);
@@ -152,8 +148,49 @@ vec3 CalculateLighting(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos)
 	// vec3 specular = light.color * spec;
 	vec3 specular = vec3(0.0);
 
+	vec3 result = (diffuse + specular);
+	return result;
+}
+
+vec3 CalculatePointLight(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos)
+{
+	// Diffuse 
+	vec3 lightDirection = normalize(light.position - frag_pos);
+	float diff = max(dot(normal, lightDirection), 0.0);
+	vec3 diffuse = light.color * diff;
+
+	// Specular
+	// vec3 reflectDir = reflect(-lightDir, normal);  
+    // float spec = pow(max(dot(view_dir, reflectDir), 0.0), objectMaterial.smoothness) * objectMaterial.metalness;
+	// vec3 specular = light.color * spec;
+	vec3 specular = vec3(0.0);
+
+	// Attenuation
+ 	float distance = length(light.position - frag_pos);
+    float attenuation = 1.0 / (1.0 + 0.5 * distance + 1.0 * (distance * distance));    
+
+	vec3 result = (diffuse + specular);
+	return result;
+}
+
+
+vec3 CalculateLighting(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos)
+{
+
 	vec3 result = vec3(0.0);
-	result = (diffuse + specular);
+
+	switch(light.type)
+	{
+		case 0: 
+			result = CalculatePointLight(light, normal, view_dir, frag_pos);
+			break;
+		case 1:
+			result = CalculateDirectionalLight(light, normal, view_dir);
+			break;
+
+		default: break;
+	}
+
 	return result;
 }
 

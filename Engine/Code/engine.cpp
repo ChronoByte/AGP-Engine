@@ -341,7 +341,7 @@ void Init(App* app)
 	app->entities.push_back(e4);
 
 	// Lights -----------
-	app->lights.push_back(Light(glm::vec3(3.0f, 5.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)));
+	app->lights.push_back(Light(glm::vec3(0.0f, 10.0f, 0.f), glm::vec3(1.0f, 1.0f, 1.0f)));
 	
 
 	// FBO --------------
