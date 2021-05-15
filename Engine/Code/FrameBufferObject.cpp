@@ -30,6 +30,9 @@ void FrameBufferObject::ReserveMemory()
 
 	glGenTextures(1, &IDs[RENDER_TEXTURE]);
 	glGenTextures(1, &IDs[DEPTH_TEXTURE]);
+	glGenTextures(1, &IDs[G_POSITION_TEXTURE]);
+	glGenTextures(1, &IDs[G_ALBEDO_TEXTURE]);
+	glGenTextures(1, &IDs[G_NORMALS_TEXTURE]);
 
 	glGenFramebuffers(1, &IDs[FBO]);
 
@@ -39,6 +42,9 @@ void FrameBufferObject::FreeMemory()
 {
 	glDeleteTextures(1, &IDs[RENDER_TEXTURE]);
 	glDeleteTextures(1, &IDs[DEPTH_TEXTURE]);
+	glDeleteTextures(1, &IDs[G_POSITION_TEXTURE]);
+	glDeleteTextures(1, &IDs[G_ALBEDO_TEXTURE]);
+	glDeleteTextures(1, &IDs[G_NORMALS_TEXTURE]);
 
 	glDeleteFramebuffers(1, &IDs[FBO]);
 }
@@ -75,10 +81,42 @@ void FrameBufferObject::UpdateFBO()
 	// ----------------------------------------------------------------------
 
 
+	// ------------------------ Define Position Texture ------------------------
+
+	glBindTexture(GL_TEXTURE_2D, IDs[G_POSITION_TEXTURE]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// ----------------------------------------------------------------------
+
+	// ------------------------ Define Normal Texture ------------------------
+
+	glBindTexture(GL_TEXTURE_2D, IDs[G_NORMALS_TEXTURE]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// ----------------------------------------------------------------------
+
+	// ------------------------ Define Albedo Texture ------------------------
+
+	glBindTexture(GL_TEXTURE_2D, IDs[G_ALBEDO_TEXTURE]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// ----------------------------------------------------------------------
+
 	// ------------------------ Define FrameBuffer Object------------------------
 
 	glBindFramebuffer(GL_FRAMEBUFFER, IDs[FBO]);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, IDs[RENDER_TEXTURE], 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, IDs[G_POSITION_TEXTURE], 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, IDs[G_NORMALS_TEXTURE], 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, IDs[G_ALBEDO_TEXTURE], 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, IDs[DEPTH_TEXTURE], 0);
 
 	GLenum frameBufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -98,7 +136,8 @@ void FrameBufferObject::UpdateFBO()
 		}
 	}
 
-	glDrawBuffers(1, &IDs[RENDER_TEXTURE]);
+	GLuint drawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+	glDrawBuffers(4, drawBuffers);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -113,10 +152,6 @@ void FrameBufferObject::Resize(float _width, float _height)
 void FrameBufferObject::Bind()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, IDs[FBO]);
-
-	GLuint drawBuffers[] = { IDs[RENDER_TEXTURE] };
-	glDrawBuffers(ARRAY_COUNT(drawBuffers), drawBuffers);
-
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }

@@ -99,7 +99,8 @@ struct App
     // program indices
     u32 texturedGeometryProgramIdx;
 	u32 texturedMeshProgramIdx;
-    
+    u32 geometryPassShaderID; 
+
     // texture indices
     u32 diceTexIdx;
     u32 whiteTexIdx;
@@ -121,6 +122,7 @@ struct App
 
     // Location of the texture uniform in the textured quad shader
     GLuint programUniformTexture;
+    GLuint programGPassUniformTexture;
 
     // VAO object to link our screen filling quad with our textured quad shader
     GLuint vao;

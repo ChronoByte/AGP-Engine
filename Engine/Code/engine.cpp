@@ -235,6 +235,29 @@ void Init(App* app)
 	Program& texturedGeometryProgram = app->programs[app->texturedGeometryProgramIdx];
 	app->programUniformTexture = glGetUniformLocation(texturedGeometryProgram.handle, "uTexture");
 
+	app->geometryPassShaderID = LoadProgram(app, "shaders.glsl", "GEOMETRY_PASS_SHADER");
+	Program& geometryPassShader = app->programs[app->geometryPassShaderID];
+	app->programGPassUniformTexture = glGetUniformLocation(geometryPassShader.handle, "uTexture");
+
+	{
+		int attributeCount;
+		glGetProgramiv(geometryPassShader.handle, GL_ACTIVE_ATTRIBUTES, &attributeCount);
+
+		GLchar attributeName[64];
+		GLsizei attributeNameLength;
+		GLint attributeSize;
+		GLenum attributeType;
+
+		for (int i = 0; i < attributeCount; ++i)
+		{
+			glGetActiveAttrib(geometryPassShader.handle, i, 64, &attributeNameLength, &attributeSize, &attributeType, attributeName);
+
+			GLint attributeLocation = glGetAttribLocation(geometryPassShader.handle, attributeName);
+			geometryPassShader.vertexInputLayout.attributes.push_back({ (u8)attributeLocation,(u8)attributeSize });
+		}
+	}
+	
+
 	// Textures 
 	app->diceTexIdx = LoadTexture2D(app, "dice.png");
 	app->whiteTexIdx = LoadTexture2D(app, "color_white.png");
@@ -263,6 +286,7 @@ void Init(App* app)
 	// Program ----------
 	app->texturedMeshProgramIdx = LoadProgram(app, "shaders.glsl", "SHOW_TEXTURED_MESH");
 	Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
+
 
 	// Attributes Program ----------
 	int attributeCount;
@@ -337,6 +361,7 @@ void Gui(App* app)
 
 	ImGui::EndMainMenuBar();
 
+	static int textureId = 1;
 	if (app->show_opengl_info)
 	{
 		ImGui::Begin("Info", &app->show_opengl_info);
@@ -354,14 +379,14 @@ void Gui(App* app)
 
 		// Camera information -------------------
 		ImGui::Separator();
-		ImGui::Text("Camera");
+		ImGui::Text("Camera"); 
 		ImGui::DragFloat3("Position", &app->camera.position.x);
-		
+		ImGui::SliderInt("Render Target", &textureId, 1, MAX);
 
 		ImGui::End();
 	}
 
-	ImGui::Image((ImTextureID)app->fbo.GetTexture(RENDER_TEXTURE), ImVec2(app->displaySize.x, app->displaySize.y), ImVec2(1, 1), ImVec2(0,0));
+	ImGui::Image((ImTextureID)app->fbo.GetTexture((RenderTargetType)textureId), ImVec2(app->displaySize.x, app->displaySize.y), ImVec2(1, 1), ImVec2(0,0));
 }
 
 
@@ -464,7 +489,7 @@ void Render(App* app)
 			
 			app->fbo.Bind();
 
-			Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
+			Program& texturedMeshProgram = app->programs[app->geometryPassShaderID];
 			glUseProgram(texturedMeshProgram.handle);
 
 			glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
