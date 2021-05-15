@@ -365,7 +365,6 @@ void Gui(App* app)
 
 	ImGui::EndMainMenuBar();
 
-	static int textureId = 1;
 	if (app->show_opengl_info)
 	{
 		ImGui::Begin("Info", &app->show_opengl_info);
@@ -385,12 +384,16 @@ void Gui(App* app)
 		ImGui::Separator();
 		ImGui::Text("Camera"); 
 		ImGui::DragFloat3("Position", &app->camera.position.x);
-		ImGui::SliderInt("Render Target", &textureId, 1, MAX);
+
+		const char* items[] = { "Default", "G_Position", "G_Normals", "G_Albedo", "Depth Texture" };
+		static int item_current = 0;
+		if (ImGui::Combo("Render Target", &item_current, items, IM_ARRAYSIZE(items)))
+		{
+			app->displayedTexture = (RenderTargetType)item_current;
+		}
 
 		ImGui::End();
 	}
-
-	ImGui::Image((ImTextureID)app->fbo.GetTexture((RenderTargetType)textureId), ImVec2(app->displaySize.x, app->displaySize.y), ImVec2(1, 1), ImVec2(0,0));
 }
 
 
@@ -544,7 +547,7 @@ void Render(App* app)
 
 	glUniform1i(app->programUniformTexture, 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, app->fbo.GetTexture(RENDER_TEXTURE));
+	glBindTexture(GL_TEXTURE_2D, app->fbo.GetTexture(app->displayedTexture));
 
 	renderQuad(app);
 

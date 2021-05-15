@@ -169,6 +169,7 @@ struct App
 
     //FBO
     FrameBufferObject fbo;
+    RenderTargetType displayedTexture = RenderTargetType::RENDER_TEXTURE;
 };
 
 
