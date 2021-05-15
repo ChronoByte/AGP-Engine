@@ -6,6 +6,7 @@ enum EntityType
 {
 	PATRICK = 0,
 	PLANE,
+	SPHERE,
 
 	NONE
 };

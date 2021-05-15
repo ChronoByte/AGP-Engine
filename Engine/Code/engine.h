@@ -130,6 +130,7 @@ struct App
 	//Models stuff
 	u32 model;
 	u32 plane;
+	u32 sphere;
 	u32 texturedMeshProgram_uTexture;
 	Geometry geo;
 

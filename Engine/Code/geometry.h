@@ -100,6 +100,9 @@ struct Geometry
 	std::vector<u32> indices;
 
 	Model planeModel;
+	Model sphereModel;
+
 	u32 LoadPlane(App* app);
+	u32 LoadSphere(App* app);
 };
 

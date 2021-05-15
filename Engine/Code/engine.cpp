@@ -267,10 +267,9 @@ void Init(App* app)
 
 
 
-	//--------------------- PATRICK ---------------------- //
+	//--------------------- MODEL ---------------------- //
 
 	
-
 	// Camera -----------
 	app->camera.position = vec3(0.0f, 4.0f, 15.0f);
 	app->camera.target = vec3(0.0f);
@@ -320,32 +319,37 @@ void Init(App* app)
 	// Model ----------
 	app->model = LoadModel(app, "Patrick/Patrick.obj");
 	app->plane = app->geo.LoadPlane(app);
+	app->sphere = app->geo.LoadSphere(app);
 	app->mode = Mode_Model;
 
 	//Entities --------
 	Entity e0 = Entity(glm::mat4(1.0), app->plane, 0, 0, EntityType::PLANE);
-	//e0.worldMatrix = glm::translate(e0.worldMatrix, vec3(0.0, -1.0, 0.0));
 	e0.worldMatrix = TransformPositionScale(vec3(0.0, -1.0, 0.0), vec3(100.0, 1.0, 100.0));
 	e0.worldMatrix = TransformRotation(e0.worldMatrix, 88, { 1, 0, 0 });
 	app->entities.push_back(e0);
 
 	Entity e1 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
-	e1.worldMatrix = glm::translate(e1.worldMatrix, vec3(3.0, 1.0, -6.0));
+	e1.worldMatrix = TransformPositionScale(vec3(3.0, 1.0, -6.0), vec3(1.0));
 	app->entities.push_back(e1);
 
 	Entity e3 = Entity(glm::mat4(1.0), app->model, 0, 0,EntityType::PATRICK);
-	e3.worldMatrix = glm::translate(e3.worldMatrix, vec3(-3.0, 1.0, -6.0));
+	e3.worldMatrix = TransformPositionScale(vec3(-3.0, 1.0, -6.0), vec3(1.0));
 	app->entities.push_back(e3);
 
 	Entity e2 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
-	e2.worldMatrix = glm::translate(e2.worldMatrix, vec3(0.0, 1.0, 2.0));
+	e2.worldMatrix = TransformPositionScale(vec3(0.0, 1.0, 2.0), vec3(1.0));
 	app->entities.push_back(e2);
 
-	// Lights -----------
+	Entity e4 = Entity(glm::mat4(1.0), app->sphere, 0, 0, EntityType::SPHERE);
+	e4.worldMatrix = TransformPositionScale(vec3(0.0, 5.0, 2.0), vec3(1.0));
+	app->entities.push_back(e4);
 
+	// Lights -----------
 	app->lights.push_back(Light(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
 	app->lights.push_back(Light(glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
 	
+
+	// FBO --------------
 	app->fbo.Initialize(app->displaySize.x, app->displaySize.y);
 }
 
