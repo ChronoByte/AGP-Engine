@@ -579,6 +579,8 @@ void Render(App* app)
 	glUseProgram(0);
 	// --------------------------------------- SHADING PASS -------------------------------------
 
+	app->shadingFbo.Bind();
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	Program& shaderPassProgram = app->programs[app->shadingPassShaderID];
@@ -598,6 +600,8 @@ void Render(App* app)
 
 	renderQuad(app);
 
+	app->shadingFbo.Unbind();
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE1);
@@ -608,21 +612,28 @@ void Render(App* app)
 	glUseProgram(0);
 
 
-	//// --------------------------------------- RENDER SCREEN QUAD -------------------------------------
+	// --------------------------------------- RENDER SCREEN QUAD -------------------------------------
 
-	//Program& programTexturedGeometry = app->programs[app->texturedGeometryProgramIdx];
-	//glUseProgram(programTexturedGeometry.handle);
+	Program& programTexturedGeometry = app->programs[app->texturedGeometryProgramIdx];
+	glUseProgram(programTexturedGeometry.handle);
 
-	//glUniform1i(app->programUniformTexture, 0);
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(app->displayedTexture));
+	glUniform1i(app->programUniformTexture, 0);
+	glActiveTexture(GL_TEXTURE0);
+	if (app->displayedTexture == RENDER_TEXTURE)
+	{
+		glBindTexture(GL_TEXTURE_2D, app->shadingFbo.GetTexture(RENDER_TEXTURE));
+	}
+	else
+	{
+		glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(app->displayedTexture));
+	}
 
-	//renderQuad(app);
+	renderQuad(app);
 
-	//glBindTexture(GL_TEXTURE_2D, 0);
-	//glUseProgram(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glUseProgram(0);
 
-	//// -------------------------------------------------------------------------------------------------
+	// -------------------------------------------------------------------------------------------------
 	
 }
 
