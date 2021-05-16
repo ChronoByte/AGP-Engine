@@ -335,6 +335,8 @@ uniform sampler2D gAlbedoSpec;
 
 layout(location = 0) out vec4 FragColor;
 
+vec3 CalculateLighting(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos, vec3 pixelColor);
+
 void main()
 {
 	// retrieve data from gbuffer
@@ -343,21 +345,70 @@ void main()
     vec3 Diffuse = texture(gAlbedoSpec, vTexCoord).rgb;
     float Specular = 0;
 
-    vec3 lighting  = Diffuse * 0.1; // hard-coded ambient component
 	vec3 viewDir  = normalize(uCameraPosition - FragPos);
-    for(int i = 0; i < uLightCount; ++i)
-    {
-        // diffuse
-        vec3 lightDir = normalize(uLights[i].position - FragPos);
-        vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * uLights[i].color;
-        // specular
-        vec3 halfwayDir = normalize(lightDir + viewDir);  
-        float spec = pow(max(dot(Normal, halfwayDir), 0.0), 16.0);
-        vec3 specular = uLights[i].color * spec * Specular;
 
-        lighting += diffuse + specular;        
-    }
+    vec3 lighting  = vec3(0.0);
+    for(int i = 0; i < uLightCount; ++i)
+		lighting += CalculateLighting(uLights[i], Normal, viewDir, FragPos, Diffuse);
+
     FragColor = vec4(lighting, 1.0);
+}
+
+vec3 CalculateDirectionalLight(Light light, vec3 normal, vec3 view_dir, vec3 pixelColor)
+{
+	// Diffuse 
+	vec3 lightDirection = normalize(-light.direction);
+	float diff = max(dot(lightDirection, normal), 0.0);
+	vec3 diffuse = light.color * diff * pixelColor;
+
+	// Specular
+	vec3 halfwayDir = normalize(lightDirection + view_dir);
+	float spec = pow(max(dot(normal, halfwayDir), 0.0), 128.0);
+	vec3 specular = light.color * spec;
+
+	vec3 result = (diffuse + specular);
+	return result;
+}
+
+vec3 CalculatePointLight(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos, vec3 pixelColor)
+{
+	// Diffuse 
+	vec3 lightDirection = normalize(light.position - frag_pos);
+	float diff = max(dot(normal, lightDirection), 0.0);
+	vec3 diffuse = light.color * diff * pixelColor;
+
+	// Specular
+    vec3 halfwayDir = normalize(lightDirection + view_dir);  
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), 128.0);
+	vec3 specular = light.color * spec;
+
+	// Attenuation
+ 	float distance = length(light.position - frag_pos);
+    float attenuation = 1.0 / (1.0 + 0.5 * distance + 1.0 * (distance * distance));    
+
+	vec3 result = (diffuse + specular);
+	return result;
+}
+
+
+vec3 CalculateLighting(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos, vec3 pixelColor)
+{
+
+	vec3 result = vec3(0.0);
+
+	switch(light.type)
+	{
+		case 0: 
+			result = CalculatePointLight(light, normal, view_dir, frag_pos, pixelColor);
+			break;
+		case 1:
+			result = CalculateDirectionalLight(light, normal, view_dir, pixelColor);
+			break;
+
+		default: break;
+	}
+
+	return result;
 }
 
 #endif
