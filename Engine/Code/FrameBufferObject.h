@@ -10,6 +10,7 @@ enum RenderTargetType
 	G_ALBEDO_TEXTURE,
 	DEPTH_TEXTURE,
 	FBO,
+	ZBO,
 	MAX
 };
 

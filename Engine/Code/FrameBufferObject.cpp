@@ -60,6 +60,7 @@ void GBuffer::ReserveMemory()
 	glGenTextures(1, &IDs[G_NORMALS_TEXTURE]);
 
 	glGenFramebuffers(1, &IDs[FBO]);
+	glGenRenderbuffers(1, &IDs[ZBO]);
 }
 
 void GBuffer::FreeMemory()
@@ -71,6 +72,7 @@ void GBuffer::FreeMemory()
 	glDeleteTextures(1, &IDs[G_NORMALS_TEXTURE]);
 
 	glDeleteFramebuffers(1, &IDs[FBO]);
+	glDeleteRenderbuffers(1, &IDs[ZBO]);
 }
 
 void GBuffer::UpdateFBO()
@@ -121,7 +123,7 @@ void GBuffer::UpdateFBO()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
+	glBindTexture(GL_TEXTURE_2D, 0);
 	// ----------------------------------------------------------------------
 
 	// ------------------------ Define Albedo Texture ------------------------
@@ -134,14 +136,24 @@ void GBuffer::UpdateFBO()
 
 	// ----------------------------------------------------------------------
 
-	// ------------------------ Define FrameBuffer Object------------------------
 
+
+	// ------------------------ Define FrameBuffer Object------------------------
 	glBindFramebuffer(GL_FRAMEBUFFER, IDs[FBO]);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, IDs[RENDER_TEXTURE], 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, IDs[G_POSITION_TEXTURE], 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, IDs[G_NORMALS_TEXTURE], 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, IDs[G_ALBEDO_TEXTURE], 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, IDs[DEPTH_TEXTURE], 0);
+
+	GLuint drawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+	glDrawBuffers(4, drawBuffers);
+
+	// ------------------------ Define ZBuffer Object------------------------
+	glBindRenderbuffer(GL_RENDERBUFFER, IDs[ZBO]);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, IDs[ZBO]);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	GLenum frameBufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (frameBufferStatus != GL_FRAMEBUFFER_COMPLETE)
@@ -160,9 +172,10 @@ void GBuffer::UpdateFBO()
 		}
 	}
 
-	GLuint drawBuffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-	glDrawBuffers(4, drawBuffers);
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
 
 void ShadingBuffer::ReserveMemory()
@@ -171,6 +184,7 @@ void ShadingBuffer::ReserveMemory()
 	glGenTextures(1, &IDs[DEPTH_TEXTURE]);
 
 	glGenFramebuffers(1, &IDs[FBO]);
+	
 
 }
 
@@ -180,6 +194,7 @@ void ShadingBuffer::FreeMemory()
 	glDeleteTextures(1, &IDs[DEPTH_TEXTURE]);
 
 	glDeleteFramebuffers(1, &IDs[FBO]);
+	
 }
 
 void ShadingBuffer::UpdateFBO()
@@ -212,6 +227,7 @@ void ShadingBuffer::UpdateFBO()
 
 	// ----------------------------------------------------------------------
 
+	
 
 	// ------------------------ Define FrameBuffer Object------------------------
 
