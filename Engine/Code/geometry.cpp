@@ -3,6 +3,8 @@
 
 u32 Geometry::LoadPlane(App* app)
 {
+
+	//Geometry
 	vertices = {
 	-1.0, -1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, // bottom-left
 	1.0, -1.0, 0.0, 0.0, 0.0, -1.0, 1.0, 0.0, // bottom-right
@@ -15,24 +17,25 @@ u32 Geometry::LoadPlane(App* app)
 		0, 2, 3
 	};
 
-	Mesh planeMesh = {};
 
-	//create the vertex format
+	//Vertex input attributes (position, normal, textcoords)
 	VertexBufferLayout vertexBufferLayout = {};
 	vertexBufferLayout.attributes.push_back(VertexBufferAttribute{ 0, 3, 0 });
 	vertexBufferLayout.attributes.push_back(VertexBufferAttribute{ 1, 3, 3 * sizeof(float) });
 	vertexBufferLayout.attributes.push_back(VertexBufferAttribute{ 2, 2, 6 * sizeof(float) });
 	vertexBufferLayout.stride = 8 * sizeof(float);
 
-	//add the submesh into the mesh
+	//Submesh
 	Submesh submesh = {};
 	submesh.vertexBufferLayout = vertexBufferLayout;
 	submesh.vertices.swap(vertices);
 	submesh.indices.swap(indices);
 
+	//Mesh
+	Mesh planeMesh;
 	planeMesh.submeshes.push_back(submesh);
 
-	////Geometry
+	//Buffers
 	float verticesOffset = 0.0f;
 	float indicesOffset = 0.0f;
 
@@ -57,20 +60,21 @@ u32 Geometry::LoadPlane(App* app)
 	}
 
 	
-
+	//Mesh
 	planeModel.meshIdx = app->meshes.size();
 	app->meshes.push_back(planeMesh);
 
-	u32 modelIdx = app->models.size();
 
+	//Material
 	Material planeMat;
 	planeMat.albedo = vec3(1.0f, 1.0f, 1.0f);
 	planeMat.albedoTextureIdx = app->whiteTexIdx;
-
 	u32 materialIdx = app->materials.size();
 	app->materials.push_back(planeMat);
 	planeModel.materialIdx.push_back(materialIdx);
 
+	//Model
+	u32 modelIdx = app->models.size();
 	app->models.push_back(planeModel);
 
 	return modelIdx;
@@ -99,9 +103,10 @@ u32 Geometry::LoadSphere(App* app)
 			float verY = -sinf(anglev);
 			vertices.push_back(verY);
 
-			float verZ = -sinf(cosf(angleh) * cosf(anglev));
+			float verZ = cosf(angleh) * cosf(anglev);
 			vertices.push_back(verZ);
 
+		
 			//Normal
 			float normX = sinf(angleh) * cosf(anglev);
 			vertices.push_back(normX);
@@ -111,10 +116,14 @@ u32 Geometry::LoadSphere(App* app)
 
 			float normZ = cosf(angleh) * cosf(anglev);
 			vertices.push_back(normZ);
+
+			
 			
 			//TextCoord
 			vertices.push_back(0.0);
 			vertices.push_back(0.0);
+
+			
 
 		}
 	}
