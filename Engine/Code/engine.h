@@ -85,6 +85,7 @@ struct App
     char openGlVersion[64];
 
     ivec2 displaySize;
+    ivec2 lastFrameDisplaySize;
 
     //std::vector<Texture>  textures;
     //std::vector<Program>  programs;

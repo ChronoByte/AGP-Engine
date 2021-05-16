@@ -440,6 +440,15 @@ void Update(App* app)
     // You can handle app->input keyboard/mouse here
 	app->camera.Update(app);
 
+	// Resize window
+
+	if (app->lastFrameDisplaySize != app->displaySize)
+	{
+		app->gFbo.Resize(app->displaySize.x, app->displaySize.y);
+		app->shadingFbo.Resize(app->displaySize.x, app->displaySize.y);
+	}
+	app->lastFrameDisplaySize = app->displaySize;
+
 	// Global params
 
 	MapBuffer(app->gpBuffer, GL_WRITE_ONLY);
