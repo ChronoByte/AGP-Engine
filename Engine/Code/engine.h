@@ -100,6 +100,7 @@ struct App
     u32 texturedGeometryProgramIdx;
 	u32 texturedMeshProgramIdx;
     u32 geometryPassShaderID; 
+    u32 shadingPassShaderID; 
 
     // texture indices
     u32 diceTexIdx;
@@ -123,6 +124,9 @@ struct App
     // Location of the texture uniform in the textured quad shader
     GLuint programUniformTexture;
     GLuint programGPassUniformTexture;
+    GLuint programShadingPassUniformTexturePosition;
+    GLuint programShadingPassUniformTextureNormals;
+    GLuint programShadingPassUniformTextureAlbedo;
 
     // VAO object to link our screen filling quad with our textured quad shader
     GLuint vao;
@@ -168,7 +172,9 @@ struct App
 	Camera camera;
 
     //FBO
-    FrameBufferObject fbo;
+    GBuffer gFbo;
+    ShadingBuffer shadingFbo; 
+
     RenderTargetType displayedTexture = RenderTargetType::RENDER_TEXTURE;
 };
 

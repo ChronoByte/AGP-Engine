@@ -257,6 +257,30 @@ void Init(App* app)
 		}
 	}
 	
+	app->shadingPassShaderID = LoadProgram(app, "shaders.glsl", "SHADING_PASS_SHADER");
+	Program& shadingPassShader = app->programs[app->shadingPassShaderID];
+	app->programShadingPassUniformTexturePosition = glGetUniformLocation(shadingPassShader.handle, "gPosition");
+	app->programShadingPassUniformTextureNormals = glGetUniformLocation(shadingPassShader.handle, "gNormal");
+	app->programShadingPassUniformTextureAlbedo = glGetUniformLocation(shadingPassShader.handle, "gAlbedoSpec");
+
+	{
+		int attributeCount;
+		glGetProgramiv(shadingPassShader.handle, GL_ACTIVE_ATTRIBUTES, &attributeCount);
+
+		GLchar attributeName[64];
+		GLsizei attributeNameLength;
+		GLint attributeSize;
+		GLenum attributeType;
+
+		for (int i = 0; i < attributeCount; ++i)
+		{
+			glGetActiveAttrib(shadingPassShader.handle, i, 64, &attributeNameLength, &attributeSize, &attributeType, attributeName);
+
+			GLint attributeLocation = glGetAttribLocation(shadingPassShader.handle, attributeName);
+			shadingPassShader.vertexInputLayout.attributes.push_back({ (u8)attributeLocation,(u8)attributeSize });
+		}
+
+	}
 
 	// Textures 
 	app->diceTexIdx = LoadTexture2D(app, "dice.png");
@@ -321,7 +345,7 @@ void Init(App* app)
 	//Entities --------
 	Entity e0 = Entity(glm::mat4(1.0), app->plane, 0, 0, EntityType::PLANE);
 	e0.worldMatrix = TransformPositionScale(vec3(0.0, -1.0, 0.0), vec3(100.0, 1.0, 100.0));
-	e0.worldMatrix = TransformRotation(e0.worldMatrix, 88, { 1, 0, 0 });
+	e0.worldMatrix = TransformRotation(e0.worldMatrix, 90, { 1, 0, 0 });
 	app->entities.push_back(e0);
 
 	Entity e1 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
@@ -345,7 +369,8 @@ void Init(App* app)
 	
 
 	// FBO --------------
-	app->fbo.Initialize(app->displaySize.x, app->displaySize.y);
+	app->gFbo.Initialize(app->displaySize.x, app->displaySize.y);
+	app->shadingFbo.Initialize(app->displaySize.x, app->displaySize.y);
 }
 
 void Gui(App* app)
@@ -507,9 +532,9 @@ void Render(App* app)
 		case Mode::Mode_Model:
 		{
 			
-			app->fbo.Bind();
+			app->gFbo.Bind();
 
-			Program& texturedMeshProgram = app->programs[app->texturedMeshProgramIdx];
+			Program& texturedMeshProgram = app->programs[app->geometryPassShaderID];
 			glUseProgram(texturedMeshProgram.handle);
 
 			glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
@@ -540,7 +565,7 @@ void Render(App* app)
 
 			}	
 
-			app->fbo.Unbind();
+			app->gFbo.Unbind();
 		}
 		break;
        
@@ -549,25 +574,55 @@ void Render(App* app)
 
 	}
 
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
+	// --------------------------------------- SHADING PASS -------------------------------------
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// --------------------------------------- RENDER SCREEN QUAD -------------------------------------
+	Program& shaderPassProgram = app->programs[app->shadingPassShaderID];
+	glUseProgram(shaderPassProgram.handle);
 
-	Program& programTexturedGeometry = app->programs[app->texturedGeometryProgramIdx];
-	glUseProgram(programTexturedGeometry.handle);
+	glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
 
-	glUniform1i(app->programUniformTexture, 0);
+	glUniform1i(app->programShadingPassUniformTexturePosition, 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, app->fbo.GetTexture(app->displayedTexture));
+	glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(G_POSITION_TEXTURE));
+	glUniform1i(app->programShadingPassUniformTextureNormals, 1);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(G_NORMALS_TEXTURE));
+	glUniform1i(app->programShadingPassUniformTextureAlbedo, 2);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(G_ALBEDO_TEXTURE));
 
 	renderQuad(app);
 
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	glUseProgram(0);
 
-	// -------------------------------------------------------------------------------------------------
+
+	//// --------------------------------------- RENDER SCREEN QUAD -------------------------------------
+
+	//Program& programTexturedGeometry = app->programs[app->texturedGeometryProgramIdx];
+	//glUseProgram(programTexturedGeometry.handle);
+
+	//glUniform1i(app->programUniformTexture, 0);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(app->displayedTexture));
+
+	//renderQuad(app);
+
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	//glUseProgram(0);
+
+	//// -------------------------------------------------------------------------------------------------
 	
 }
 

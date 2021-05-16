@@ -59,7 +59,6 @@ struct Light {
 
 layout(binding = 0, std140) uniform GlobalParams
 {
-
 	vec3 uCameraPosition;
 	unsigned int uLightCount; 
 	Light uLights[16];
@@ -74,8 +73,6 @@ layout(binding = 1, std140) uniform LocalParams
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTexCoord;
-
-
 
 out vec2 vTexCoord;
 out vec3 vPosition; // in worldspace
@@ -215,6 +212,7 @@ struct Light {
 
 layout(binding = 0, std140) uniform GlobalParams
 {
+	vec3 uCameraPosition;
 	unsigned int uLightCount; 
 	Light uLights[16];
 };
@@ -256,20 +254,6 @@ in vec3 vNormal; // in worldspace
 
 uniform sampler2D uTexture;
 
-struct Light {
-	unsigned int type; 
-	vec3 position;
-	vec3 color; 
-	vec3 direction;
-};
-
-layout(binding = 0, std140) uniform GlobalParams
-{
-	unsigned int uLightCount; 
-	Light uLights[16];
-};
-
-
 layout(location = 0) out vec4 FragColor;
 layout (location = 1) out vec3 gPosition;
 layout (location = 2) out vec3 gNormal;
@@ -282,6 +266,98 @@ void main()
 	gAlbedoSpec.rgb = texture(uTexture, vTexCoord).rgb;
 
 	FragColor = texture(uTexture, vTexCoord);
+}
+
+#endif
+#endif
+
+// NOTE: You can write several shaders in the same file if you want as
+// long as you embrace them within an #ifdef block (as you can see above).
+// The third parameter of the LoadProgram function in engine.cpp allows
+// chosing the shader you want to load by name.
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// SHADING PASS SHADER
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#ifdef SHADING_PASS_SHADER
+
+#if defined(VERTEX) ///////////////////////////////////////////////////
+
+struct Light {
+	unsigned int type; 
+	vec3 position;
+	vec3 color; 
+	vec3 direction;
+};
+
+layout(binding = 0, std140) uniform GlobalParams
+{
+	vec3 uCameraPosition;
+	unsigned int uLightCount; 
+	Light uLights[16];
+};
+
+layout(location = 0) in vec3 aPosition;
+layout(location = 1) in vec3 aNormal;
+layout(location = 2) in vec2 aTexCoord;
+
+out vec2 vTexCoord;
+
+void main()
+{
+	vTexCoord = aTexCoord;
+	gl_Position = vec4(aPosition, 1.0);
+}
+
+#elif defined(FRAGMENT) ///////////////////////////////////////////////
+
+
+struct Light {
+	unsigned int type; 
+	vec3 position;
+	vec3 color; 
+	vec3 direction;
+};
+
+layout(binding = 0, std140) uniform GlobalParams
+{
+	vec3 uCameraPosition;
+	unsigned int uLightCount; 
+	Light uLights[16];
+};
+
+in vec2 vTexCoord;
+
+uniform sampler2D gPosition;
+uniform sampler2D gNormal;
+uniform sampler2D gAlbedoSpec;
+
+layout(location = 0) out vec4 FragColor;
+
+void main()
+{
+	// retrieve data from gbuffer
+    vec3 FragPos = texture(gPosition, vTexCoord).rgb;
+    vec3 Normal = texture(gNormal, vTexCoord).rgb;
+    vec3 Diffuse = texture(gAlbedoSpec, vTexCoord).rgb;
+    float Specular = 0;
+
+    vec3 lighting  = Diffuse * 0.1; // hard-coded ambient component
+	vec3 viewDir  = normalize(uCameraPosition - FragPos);
+    for(int i = 0; i < uLightCount; ++i)
+    {
+        // diffuse
+        vec3 lightDir = normalize(uLights[i].position - FragPos);
+        vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * uLights[i].color;
+        // specular
+        vec3 halfwayDir = normalize(lightDir + viewDir);  
+        float spec = pow(max(dot(Normal, halfwayDir), 0.0), 16.0);
+        vec3 specular = uLights[i].color * spec * Specular;
+
+        lighting += diffuse + specular;        
+    }
+    FragColor = vec4(lighting, 1.0);
 }
 
 #endif

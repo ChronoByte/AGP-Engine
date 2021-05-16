@@ -24,23 +24,41 @@ public:
 
 	void Initialize(float _width, float _height);
 
-	void ReserveMemory();
-	void FreeMemory();
+	virtual void ReserveMemory() = 0;
+	virtual void FreeMemory() {}
 	
-	void UpdateFBO(); 
+	virtual void UpdateFBO() = 0;
 
 	void Resize(float _width, float _height);
 
 	void Bind(); 
 	void Unbind(); 
 
-
 	u32 GetTexture(RenderTargetType textureType);
 
-private:
+protected:
 
 	float width = 0.f;
 	float height = 0.f; 
 
 	u32 IDs[RenderTargetType::MAX];
+};
+
+class GBuffer : public FrameBufferObject
+{
+public: 
+
+	void ReserveMemory() override; 
+	void FreeMemory() override;
+
+	void UpdateFBO() override;
+};
+
+class ShadingBuffer : public FrameBufferObject
+{
+public: 
+	void ReserveMemory() override; 
+	void FreeMemory() override; 
+
+	void UpdateFBO() override;
 };
