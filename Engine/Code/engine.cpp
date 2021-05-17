@@ -9,6 +9,7 @@
 #include <imgui.h>
 #include <stb_image.h>
 #include <stb_image_write.h>
+#include<time.h>
 
 
 
@@ -319,7 +320,7 @@ void Init(App* app)
 
 	
 	// Camera -----------
-	app->camera = Camera(vec3(0.0f, 4.0f, 15.0f), vec3(-90.0f, 0.f, 0.f));
+	app->camera = Camera(vec3(35, 11.0f, 50.0f), vec3(-120.0f, -7.f, 0.f));
 	
 	app->camera.aspect_ratio = (float)app->displaySize.x / (float)app->displaySize.y;
 	app->camera.projectionMatrix = glm::perspective(glm::radians(app->camera.vertical_fov), app->camera.aspect_ratio, app->camera.nearPlane, app->camera.farPlane);
@@ -366,46 +367,46 @@ void Init(App* app)
 	app->sphere = app->geo.LoadSphere(app);
 	app->mode = Mode_Model;
 
-	//Entities --------
+	// Entities --------
+
 	Entity e0 = Entity(glm::mat4(1.0), app->plane, 0, 0, EntityType::PLANE);
 	e0.worldMatrix = TransformPositionScale(vec3(0.0, -1.0, 0.0), vec3(100.0, 1.0, 100.0));
 	e0.worldMatrix = TransformRotation(e0.worldMatrix, 90, { 1, 0, 0 });
 	app->entities.push_back(e0);
 
-	Entity e1 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
-	e1.worldMatrix = TransformPositionScale(vec3(3.0, 1.0, -6.0), vec3(1.0));
-	app->entities.push_back(e1);
+	const int COLUMNS = 6;
+	const int ROWS = 6;
+	const u32 distance = 6;
 
-	Entity e3 = Entity(glm::mat4(1.0), app->model, 0, 0,EntityType::PATRICK);
-	e3.worldMatrix = TransformPositionScale(vec3(-4.0, 2.4, -3.0), vec3(1.0));
-	app->entities.push_back(e3);
-
-	Entity e2 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
-	e2.worldMatrix = TransformPositionScale(vec3(0.0, 2.4, 2.0), vec3(1.0));
-	app->entities.push_back(e2);
-
-	Entity e6 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
-	e6.worldMatrix = TransformPositionScale(vec3(0.0, 2.4, -12.0), vec3(1.0));
-	app->entities.push_back(e6);
-
-	Entity e4 = Entity(glm::mat4(1.0), app->sphere, 0, 0, EntityType::SPHERE);
-	e4.worldMatrix = TransformPositionScale(vec3(0.0, 5.0, 2.0), vec3(1.0));
-	app->entities.push_back(e4);
-
-	Entity e5 = Entity(glm::mat4(1.0), app->plane, 0, 0, EntityType::PLANE);
-	e5.worldMatrix = TransformPositionScale(vec3(0.0, 0.0, 0.0), vec3(2.0));
-	e5.worldMatrix = TransformRotation(e5.worldMatrix, 45, { 1, 0, 0 });
-	app->entities.push_back(e5);
-
-	// Lights -----------
-	app->lights.push_back(Light(glm::vec3(-1.0f, 1.0f, -7.f), glm::vec3(0.0f, 1.0f, 1.0f)));
-	app->lights.push_back(Light(glm::vec3(6.0f, 1.0f, 0.f), glm::vec3(1.0f, 1.0f, 0.0f)));
-	app->lights.push_back(Light(glm::vec3(0.0f, 1.0f, 7.f), glm::vec3(0.0f, 1.0f, 0.0f)));
-	app->lights.push_back(Light(glm::vec3(-6.0f, 1.0f, 0.f), glm::vec3(1.0f, 0.0f, 1.0f)));
-
-	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, 1.0, 0.0)));
-	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(1.0f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(-1.0, 0.0, 1.0)));
+	for (int x = -ROWS; x < ROWS; ++x)
+	{
+		for (int y = -COLUMNS; y < COLUMNS; ++y)
+		{
+			Entity e1 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
+			e1.worldMatrix = TransformPositionScale(vec3(x * distance, 2.4f, y * distance), vec3(1.0f));
+			app->entities.push_back(e1);
+		}
+	}
 	
+	// Lights --------
+
+	const int LIGHTS = 6;
+	const u32 offset = 2;
+	std::srand(time(NULL));
+
+	for (int x = -LIGHTS; x < LIGHTS; ++x)
+	{
+		for (int y = -LIGHTS; y < LIGHTS; ++y)
+		{
+			vec3 color = GenerateRandomBrightColor();
+			app->lights.push_back(Light(glm::vec3(x * distance, 1.0f, y * distance + offset), glm::vec3(color.x, color.y, color.z)));
+		}
+	}
+
+
+	/*app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, 1.0, 0.0)));
+	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(1.0f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(-1.0, 0.0, 1.0)));
+	*/
 
 	// FBO --------------
 	app->gFbo.Initialize(app->displaySize.x, app->displaySize.y);
@@ -846,4 +847,32 @@ glm::mat4 TransformRotation(const glm::mat4& matrix, float angle, vec3 axis)
 	float radians = glm::radians(angle);
 	glm::mat4 transform = glm::rotate(matrix, radians, axis);
 	return transform;
+}
+
+vec3 GenerateRandomBrightColor()
+{
+	int rgb[3];
+	rgb[0] = std::rand() % 256;  // red
+	rgb[1] = std::rand() % 256;  // green
+	rgb[2] = std::rand() % 256;  // blue
+
+	// find max and min indexes.
+	int max, min;
+
+	if (rgb[0] > rgb[1])
+	{
+		max = (rgb[0] > rgb[2]) ? 0 : 2;
+		min = (rgb[1] < rgb[2]) ? 1 : 2;
+	}
+	else
+	{
+		max = (rgb[1] > rgb[2]) ? 1 : 2;
+		int notmax = 1 + max % 2;
+		min = (rgb[0] < rgb[notmax]) ? 0 : notmax;
+	}
+	rgb[max] = 255;
+	rgb[min] = 0;
+
+
+	return vec3(rgb[0], rgb[1], rgb[2]) / 255.f;
 }
