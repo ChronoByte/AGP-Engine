@@ -354,19 +354,34 @@ void Init(App* app)
 	app->entities.push_back(e1);
 
 	Entity e3 = Entity(glm::mat4(1.0), app->model, 0, 0,EntityType::PATRICK);
-	e3.worldMatrix = TransformPositionScale(vec3(-3.0, 1.0, -6.0), vec3(1.0));
+	e3.worldMatrix = TransformPositionScale(vec3(-4.0, 2.4, -3.0), vec3(1.0));
 	app->entities.push_back(e3);
 
 	Entity e2 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
-	e2.worldMatrix = TransformPositionScale(vec3(0.0, 1.0, 2.0), vec3(1.0));
+	e2.worldMatrix = TransformPositionScale(vec3(0.0, 2.4, 2.0), vec3(1.0));
 	app->entities.push_back(e2);
+
+	Entity e6 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
+	e6.worldMatrix = TransformPositionScale(vec3(0.0, 2.4, -12.0), vec3(1.0));
+	app->entities.push_back(e6);
 
 	Entity e4 = Entity(glm::mat4(1.0), app->sphere, 0, 0, EntityType::SPHERE);
 	e4.worldMatrix = TransformPositionScale(vec3(0.0, 5.0, 2.0), vec3(1.0));
 	app->entities.push_back(e4);
 
+	Entity e5 = Entity(glm::mat4(1.0), app->plane, 0, 0, EntityType::PLANE);
+	e5.worldMatrix = TransformPositionScale(vec3(0.0, 0.0, 0.0), vec3(2.0));
+	e5.worldMatrix = TransformRotation(e5.worldMatrix, 45, { 1, 0, 0 });
+	app->entities.push_back(e5);
+
 	// Lights -----------
-	app->lights.push_back(Light(glm::vec3(0.0f, 10.0f, 0.f), glm::vec3(1.0f, 1.0f, 1.0f)));
+	app->lights.push_back(Light(glm::vec3(-1.0f, 1.0f, -7.f), glm::vec3(0.0f, 1.0f, 1.0f)));
+	app->lights.push_back(Light(glm::vec3(6.0f, 1.0f, 0.f), glm::vec3(1.0f, 1.0f, 0.0f)));
+	app->lights.push_back(Light(glm::vec3(0.0f, 1.0f, 7.f), glm::vec3(0.0f, 1.0f, 0.0f)));
+	app->lights.push_back(Light(glm::vec3(-6.0f, 1.0f, 0.f), glm::vec3(1.0f, 0.0f, 1.0f)));
+
+	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, 1.0, 0.0)));
+	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(1.0f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(-1.0, 0.0, 1.0)));
 	
 
 	// FBO --------------
