@@ -43,7 +43,7 @@ void main()
 #endif
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// MESH SHADER
+// MESH SHADER		------ DEPRECATED ---------
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #ifdef SHOW_TEXTURED_MESH
@@ -55,13 +55,14 @@ struct Light {
 	vec3 position;
 	vec3 color; 
 	vec3 direction;
+	unsigned int intensity;
 };
 
 layout(binding = 0, std140) uniform GlobalParams
 {
 	vec3 uCameraPosition;
 	unsigned int uLightCount; 
-	Light uLights[16];
+	Light uLights[150];
 };
 
 layout(binding = 1, std140) uniform LocalParams
@@ -108,13 +109,14 @@ struct Light {
 	vec3 position;
 	vec3 color; 
 	vec3 direction;
+	unsigned int intensity;
 };
 
 layout(binding = 0, std140) uniform GlobalParams
 {
 	vec3 uCameraPosition;
 	unsigned int uLightCount; 
-	Light uLights[16];
+	Light uLights[150];
 };
 
 
@@ -208,13 +210,14 @@ struct Light {
 	vec3 position;
 	vec3 color; 
 	vec3 direction;
+	unsigned int intensity;
 };
 
 layout(binding = 0, std140) uniform GlobalParams
 {
 	vec3 uCameraPosition;
 	unsigned int uLightCount; 
-	Light uLights[16];
+	Light uLights[150];
 };
 
 layout(binding = 1, std140) uniform LocalParams
@@ -295,13 +298,14 @@ struct Light {
 	vec3 position;
 	vec3 color; 
 	vec3 direction;
+	unsigned int intensity;
 };
 
 layout(binding = 0, std140) uniform GlobalParams
 {
 	vec3 uCameraPosition;
 	unsigned int uLightCount; 
-	Light uLights[16];
+	Light uLights[150];
 };
 
 layout(location = 0) in vec3 aPosition;
@@ -324,13 +328,14 @@ struct Light {
 	vec3 position;
 	vec3 color; 
 	vec3 direction;
+	unsigned int intensity;
 };
 
 layout(binding = 0, std140) uniform GlobalParams
 {
 	vec3 uCameraPosition;
 	unsigned int uLightCount; 
-	Light uLights[16];
+	Light uLights[150];
 };
 
 in vec2 vTexCoord;
@@ -363,15 +368,17 @@ void main()
 
 vec3 CalculateDirectionalLight(Light light, vec3 normal, vec3 view_dir, vec3 pixelColor)
 {
+	float intensity = float(light.intensity);
+	intensity *= 0.01;
 	// Diffuse 
 	vec3 lightDirection = normalize(-light.direction);
 	float diff = max(dot(lightDirection, normal), 0.0);
-	vec3 diffuse = light.color * diff * pixelColor;
+	vec3 diffuse = light.color * diff * pixelColor *  intensity;
 
 	// Specular
 	vec3 halfwayDir = normalize(lightDirection + view_dir);
 	float spec = pow(max(dot(normal, halfwayDir), 0.0), 128.0);
-	vec3 specular = light.color * spec;
+	vec3 specular = light.color * spec * intensity;
 
 	vec3 result = (diffuse + specular);
 	return result;
@@ -379,15 +386,18 @@ vec3 CalculateDirectionalLight(Light light, vec3 normal, vec3 view_dir, vec3 pix
 
 vec3 CalculatePointLight(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos, vec3 pixelColor)
 {
+	float intensity = float(light.intensity);
+	intensity *= 0.01;
+
 	// Diffuse 
 	vec3 lightDirection = normalize(light.position - frag_pos);
 	float diff = max(dot(normal, lightDirection), 0.0);
-	vec3 diffuse = light.color * diff * pixelColor;
+	vec3 diffuse = light.color * diff * pixelColor * intensity;
 
 	// Specular
     vec3 halfwayDir = normalize(lightDirection + view_dir);  
     float spec = pow(max(dot(normal, halfwayDir), 0.0), 128.0);
-	vec3 specular = light.color * spec;
+	vec3 specular = light.color * spec * intensity;
 
 	// Attenuation
  	float distance = length(light.position - frag_pos);

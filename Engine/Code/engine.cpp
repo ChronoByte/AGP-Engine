@@ -367,7 +367,7 @@ void Init(App* app)
 	app->sphere = app->geo.LoadSphere(app);
 	app->mode = Mode_Model;
 
-	// Entities --------
+	// -------------------------------- ENTITIES --------------------------------
 
 	Entity e0 = Entity(glm::mat4(1.0), app->plane, 0, 0, EntityType::PLANE);
 	e0.worldMatrix = TransformPositionScale(vec3(0.0, -1.0, 0.0), vec3(100.0, 1.0, 100.0));
@@ -388,8 +388,9 @@ void Init(App* app)
 		}
 	}
 	
-	// Lights --------
+	// -------------------------------- LIGHTS --------------------------------
 
+	// ----------- Point Lights -----------
 	const int LIGHTS = 6;
 	const u32 offset = 2;
 	std::srand(time(NULL));
@@ -403,9 +404,10 @@ void Init(App* app)
 		}
 	}
 
+	// ----------- Directional Lights -----------
 
-	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(0.0f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 1.0)));
-	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(0.0f, 0.0f, 0.1f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(1.0, -1.0, 0.0)));
+	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 1.0), 10U));
+	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(1.0, -1.0, 0.0), 10U));
 	
 
 	// FBO --------------
@@ -506,6 +508,7 @@ void Update(App* app)
 		PushVec3(app->gpBuffer, light.position);
 		PushVec3(app->gpBuffer, light.color);
 		PushVec3(app->gpBuffer, light.direction);
+		PushUInt(app->gpBuffer, light.intensity);
 	}
 
 	app->globalParamsSize = app->gpBuffer.head - app->globalParamsOffset;
