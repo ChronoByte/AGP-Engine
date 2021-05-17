@@ -22,4 +22,17 @@ struct Light
 		type(type),
 		direction(direction)
 	{}
+
+	glm::mat4 CalculateLightRotation()
+	{
+		glm::mat4 matrix;
+
+		glm::vec3 lightForward = glm::normalize(this->direction);
+		glm::vec3 lightRight = glm::normalize(glm::cross(glm::vec3(0, 1, 0), lightForward));
+		glm::vec3 lightUp = glm::cross(lightForward, lightRight);
+
+		matrix = glm::lookAt(this->position, this->position + lightForward, lightUp);
+
+		return matrix;
+	}
 };

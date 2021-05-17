@@ -404,8 +404,8 @@ void Init(App* app)
 	}
 
 
-	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(0.0f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 1.0)));
-	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(0.0f, 0.0f, 0.1f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(1.0, -1.0, 0.0)));
+	app->lights.push_back(Light(glm::vec3(0.0f, 5.0f, 0.f), glm::vec3(0.0f, 0.2f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 1.0)));
+	app->lights.push_back(Light(glm::vec3(0.0f, 20.0f, 0.f), glm::vec3(0.0f, 0.0f, 0.1f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(1.0, -1.0, 0.0)));
 	
 
 	// FBO --------------
@@ -697,6 +697,7 @@ void Render(App* app)
 			modelIndex = app->plane;
 			worldMatrix = TransformPositionScale(app->lights[i].position + vec3(0.0f, 10.0f, 0.0f), vec3(5.0f, 5.0f, 5.0f));
 			// Translate it here
+			worldMatrix = app->lights[i].CalculateLightRotation();
 			break;
 		case LightType::LIGHT_TYPE_POINT:
 			modelIndex = app->sphere;

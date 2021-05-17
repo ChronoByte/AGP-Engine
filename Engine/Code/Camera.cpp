@@ -16,7 +16,7 @@ Camera::Camera(glm::vec3 pos, glm::vec3 rot)
 void Camera::Update(App* app)
 {
 	vec3 newPos(0.0f);
-	float speed = 10.0f * app->deltaTime;
+	float speed = 25.0f * app->deltaTime;
 
 	
 
