@@ -262,6 +262,7 @@ void Init(App* app)
 	app->programShadingPassUniformTexturePosition = glGetUniformLocation(shadingPassShader.handle, "gPosition");
 	app->programShadingPassUniformTextureNormals = glGetUniformLocation(shadingPassShader.handle, "gNormal");
 	app->programShadingPassUniformTextureAlbedo = glGetUniformLocation(shadingPassShader.handle, "gAlbedoSpec");
+	app->programShadingPassUniformTextureDepth = glGetUniformLocation(shadingPassShader.handle, "gDepth");
 
 	{
 		int attributeCount;
@@ -606,6 +607,9 @@ void Render(App* app)
 	glUniform1i(app->programShadingPassUniformTextureAlbedo, 2);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(G_ALBEDO_TEXTURE));
+	glUniform1i(app->programShadingPassUniformTextureDepth, 3);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(DEPTH_TEXTURE));
 
 	renderQuad(app);
 
@@ -616,6 +620,8 @@ void Render(App* app)
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glUseProgram(0);

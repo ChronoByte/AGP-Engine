@@ -128,6 +128,7 @@ struct App
     GLuint programShadingPassUniformTexturePosition;
     GLuint programShadingPassUniformTextureNormals;
     GLuint programShadingPassUniformTextureAlbedo;
+	GLuint programShadingPassUniformTextureDepth;
 
     // VAO object to link our screen filling quad with our textured quad shader
     GLuint vao;
