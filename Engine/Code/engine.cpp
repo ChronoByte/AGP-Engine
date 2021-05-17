@@ -404,9 +404,9 @@ void Init(App* app)
 	}
 
 
-	/*app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, 1.0, 0.0)));
-	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(1.0f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(-1.0, 0.0, 1.0)));
-	*/
+	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(0.0f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 1.0)));
+	app->lights.push_back(Light(glm::vec3(0.0f, 0.0f, 0.f), glm::vec3(0.0f, 0.0f, 0.1f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(1.0, -1.0, 0.0)));
+	
 
 	// FBO --------------
 	app->gFbo.Initialize(app->displaySize.x, app->displaySize.y);
@@ -687,24 +687,27 @@ void Render(App* app)
 
 	for (u32 i = 0; i < app->lights.size(); ++i)
 	{
-		// ------------------  Uniforms  ------------------
-		glm::mat4 worldMatrix = TransformPositionScale(app->lights[i].position, vec3(0.3f, 0.3f, 0.3f));
-		glm::mat4 worldViewProjectionMatrix = app->camera.projectionMatrix * app->camera.viewMatrix * worldMatrix;
-		glUniformMatrix4fv(app->programLightsUniformWorldMatrix, 1, GL_FALSE, (GLfloat*)&worldViewProjectionMatrix);
-		glUniform3f(app->programLightsUniformColor, app->lights[i].color.x, app->lights[i].color.y, app->lights[i].color.z);
-
 		// ------------------  Model  ------------------
 
 		u32 modelIndex = 0U;
+		glm::mat4 worldMatrix;
 		switch (app->lights[i].type)
 		{
 		case LightType::LIGHT_TYPE_DIRECTIONAL:
 			modelIndex = app->plane;
+			worldMatrix = TransformPositionScale(app->lights[i].position + vec3(0.0f, 10.0f, 0.0f), vec3(5.0f, 5.0f, 5.0f));
+			// Translate it here
 			break;
 		case LightType::LIGHT_TYPE_POINT:
 			modelIndex = app->sphere;
+			worldMatrix = TransformPositionScale(app->lights[i].position, vec3(0.3f, 0.3f, 0.3f));
 			break;
 		}
+
+		// ------------------  Uniforms  ------------------
+		glm::mat4 worldViewProjectionMatrix = app->camera.projectionMatrix * app->camera.viewMatrix * worldMatrix;
+		glUniformMatrix4fv(app->programLightsUniformWorldMatrix, 1, GL_FALSE, (GLfloat*)&worldViewProjectionMatrix);
+		glUniform3f(app->programLightsUniformColor, app->lights[i].color.x, app->lights[i].color.y, app->lights[i].color.z);
 
 		// ----------------------------------------------
 
