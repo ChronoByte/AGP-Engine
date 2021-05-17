@@ -102,6 +102,7 @@ struct App
 	u32 texturedMeshProgramIdx;
     u32 geometryPassShaderID; 
     u32 shadingPassShaderID; 
+    u32 lightsShaderID; 
 
     // texture indices
     u32 diceTexIdx;
@@ -129,6 +130,8 @@ struct App
     GLuint programShadingPassUniformTextureNormals;
     GLuint programShadingPassUniformTextureAlbedo;
 	GLuint programShadingPassUniformTextureDepth;
+    GLuint programLightsUniformColor; 
+    GLuint programLightsUniformWorldMatrix;
 
     // VAO object to link our screen filling quad with our textured quad shader
     GLuint vao;

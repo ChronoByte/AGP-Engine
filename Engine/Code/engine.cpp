@@ -283,6 +283,29 @@ void Init(App* app)
 
 	}
 
+	app->lightsShaderID = LoadProgram(app, "shaders.glsl", "LIGHTS_SHADER");
+	Program& lightsShader = app->programs[app->lightsShaderID];
+	app->programLightsUniformColor = glGetUniformLocation(lightsShader.handle, "lightColor");
+	app->programLightsUniformWorldMatrix = glGetUniformLocation(lightsShader.handle, "uWorldViewProjectionMatrix");
+
+	{
+		int attributeCount;
+		glGetProgramiv(lightsShader.handle, GL_ACTIVE_ATTRIBUTES, &attributeCount);
+
+		GLchar attributeName[64];
+		GLsizei attributeNameLength;
+		GLint attributeSize;
+		GLenum attributeType;
+
+		for (int i = 0; i < attributeCount; ++i)
+		{
+			glGetActiveAttrib(lightsShader.handle, i, 64, &attributeNameLength, &attributeSize, &attributeType, attributeName);
+
+			GLint attributeLocation = glGetAttribLocation(lightsShader.handle, attributeName);
+			lightsShader.vertexInputLayout.attributes.push_back({ (u8)attributeLocation,(u8)attributeSize });
+		}
+
+	}
 	// Textures 
 	app->diceTexIdx = LoadTexture2D(app, "dice.png");
 	app->whiteTexIdx = LoadTexture2D(app, "color_white.png");
@@ -604,6 +627,8 @@ void Render(App* app)
 	glUseProgram(0);
 	// --------------------------------------- SHADING PASS -------------------------------------
 
+	glDisable(GL_DEPTH_TEST);
+
 	app->shadingFbo.Bind();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -641,7 +666,56 @@ void Render(App* app)
 
 	glUseProgram(0);
 
+	glEnable(GL_DEPTH_TEST);
 
+	// --------------------------------------- LIGHTS RENDERING --------------------------------------
+
+	// ================ COPY DEPTH ATTACHMENT ================
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, app->gFbo.GetTexture(FBO));
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, app->shadingFbo.GetTexture(FBO)); // write to default framebuffer
+	glBlitFramebuffer(0, 0, app->displaySize.x, app->displaySize.y, 0, 0, app->displaySize.x, app->displaySize.y, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// ================  RENDER LIGHT MESHES  ================
+
+	app->shadingFbo.Bind(false);
+
+	Program& lightsShader = app->programs[app->lightsShaderID];
+	glUseProgram(lightsShader.handle);
+
+	for (u32 i = 0; i < app->lights.size(); ++i)
+	{
+		// ------------------  Uniforms  ------------------
+		glm::mat4 worldMatrix = TransformPositionScale(app->lights[i].position, vec3(0.3f, 0.3f, 0.3f));
+		glm::mat4 worldViewProjectionMatrix = app->camera.projectionMatrix * app->camera.viewMatrix * worldMatrix;
+		glUniformMatrix4fv(app->programLightsUniformWorldMatrix, 1, GL_FALSE, (GLfloat*)&worldViewProjectionMatrix);
+		glUniform3f(app->programLightsUniformColor, app->lights[i].color.x, app->lights[i].color.y, app->lights[i].color.z);
+
+		// ------------------  Model  ------------------
+
+		u32 modelIndex = 0U;
+		switch (app->lights[i].type)
+		{
+		case LightType::LIGHT_TYPE_DIRECTIONAL:
+			modelIndex = app->plane;
+			break;
+		case LightType::LIGHT_TYPE_POINT:
+			modelIndex = app->sphere;
+			break;
+		}
+
+		// ----------------------------------------------
+
+		Mesh& mesh = app->meshes[app->models[modelIndex].meshIdx];
+		GLuint vao = FindVAO(mesh, 0, lightsShader);
+		glBindVertexArray(vao);
+
+		glDrawElements(GL_TRIANGLES, mesh.submeshes[0].indices.size(), GL_UNSIGNED_INT, (void*)(u64)mesh.submeshes[0].indexOffset);
+
+	}
+
+	app->shadingFbo.Unbind();
 	// --------------------------------------- RENDER SCREEN QUAD -------------------------------------
 
 	Program& programTexturedGeometry = app->programs[app->texturedGeometryProgramIdx];

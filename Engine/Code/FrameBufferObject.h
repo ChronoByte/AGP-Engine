@@ -32,7 +32,7 @@ public:
 
 	void Resize(float _width, float _height);
 
-	void Bind(); 
+	void Bind(bool aClear = true); 
 	void Unbind(); 
 
 	u32 GetTexture(RenderTargetType textureType);

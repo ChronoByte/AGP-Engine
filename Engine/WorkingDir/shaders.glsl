@@ -282,11 +282,6 @@ void main()
 #endif
 #endif
 
-// NOTE: You can write several shaders in the same file if you want as
-// long as you embrace them within an #ifdef block (as you can see above).
-// The third parameter of the LoadProgram function in engine.cpp allows
-// chosing the shader you want to load by name.
-
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // SHADING PASS SHADER
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -421,6 +416,39 @@ vec3 CalculateLighting(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos, v
 	}
 
 	return result;
+}
+
+#endif
+#endif
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// LIGHTS SHADER
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#ifdef LIGHTS_SHADER
+
+#if defined(VERTEX) ///////////////////////////////////////////////////
+
+layout(location = 0) in vec3 aPosition;
+layout(location = 1) in vec3 aNormal;
+layout(location = 2) in vec2 aTexCoord;
+
+uniform mat4 uWorldViewProjectionMatrix;
+
+void main()
+{
+	gl_Position = uWorldViewProjectionMatrix * vec4(aPosition, 1.0);
+}
+
+#elif defined(FRAGMENT) ///////////////////////////////////////////////
+
+uniform vec3 lightColor; 
+
+layout(location = 0) out vec4 FragColor;
+
+void main()
+{
+	FragColor = vec4(lightColor, 1.0);
 }
 
 #endif
