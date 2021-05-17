@@ -401,7 +401,7 @@ vec3 CalculatePointLight(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos,
 
 	// Attenuation
  	float distance = length(light.position - frag_pos);
-    float attenuation = 1.0 / (1.0 + 0.5 * distance + 1.0 * (distance * distance));    
+    float attenuation = 1.0 / (1.0 + 0.3 * distance + 0.5 * (distance * distance));    
 
 	diffuse *= attenuation;
     specular *= attenuation;
