@@ -14,13 +14,15 @@ struct Light
 	glm::vec3 position;
 	glm::vec3 direction;
 	glm::vec3 color;
+	unsigned int intensity; // From 0 to 100
 
 	Light(){}
-	Light(glm::vec3 position, glm::vec3 color, LightType type = LightType::LIGHT_TYPE_POINT, glm::vec3 direction = glm::vec3(0.0f, -1.0f, -1.0f))
+	Light(glm::vec3 position, glm::vec3 color, LightType type = LightType::LIGHT_TYPE_POINT, glm::vec3 direction = glm::vec3(0.0f, -1.0f, -1.0f), unsigned int intensity = 100U)
 		: position(position),
 		color(color),
 		type(type),
-		direction(direction)
+		direction(direction),
+		intensity(intensity)
 	{}
 
 	glm::mat4 CalculateLightRotation()
