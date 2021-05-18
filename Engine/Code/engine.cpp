@@ -406,8 +406,8 @@ void Init(App* app)
 
 	// ----------- Directional Lights -----------
 
-	app->lights.push_back(Light(glm::vec3(0.0f, 5.0f, 0.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 1.0), 10U));
-	app->lights.push_back(Light(glm::vec3(0.0f, 20.0f, 0.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(1.0, -1.0, 0.0), 10U));
+	app->lights.push_back(Light(glm::vec3(-20.0f, 45.0f, 3.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, 1.0, 0.0), 10U));
+	app->lights.push_back(Light(glm::vec3(22.0f, 35.0f, -6.f), glm::vec3(0.3f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 0.0), 10U));
 	
 
 	// FBO --------------
@@ -698,9 +698,11 @@ void Render(App* app)
 		{
 		case LightType::LIGHT_TYPE_DIRECTIONAL:
 			modelIndex = app->plane;
-			worldMatrix = TransformPositionScale(app->lights[i].position + vec3(0.0f, 10.0f, 0.0f), vec3(5.0f, 5.0f, 5.0f));
+			worldMatrix = TransformPositionScale(app->lights[i].position, vec3(3.0f, 3.0f, 3.0f));
+			worldMatrix = TransformRotation(worldMatrix, 90.0, vec3(1.f, 0.f, 0.f));
+			//worldMatrix += app->lights[i].CalculateLightRotation();
+			//worldMatrix += glm::lookAt(app->lights[i].position, app->lights[i].position + app->lights[i].direction, vec3(0, 1, 0));
 			// Translate it here
-			worldMatrix = app->lights[i].CalculateLightRotation();
 			break;
 		case LightType::LIGHT_TYPE_POINT:
 			modelIndex = app->sphere;
