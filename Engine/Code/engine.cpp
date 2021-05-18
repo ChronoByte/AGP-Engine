@@ -320,7 +320,7 @@ void Init(App* app)
 
 	
 	// Camera -----------
-	app->camera = Camera(vec3(35, 11.0f, 50.0f), vec3(-120.0f, -7.f, 0.f));
+	app->camera = Camera(vec3(31, 17.0f, 45.0f), vec3(-129.0f, -27.f, 0.f));
 	
 	app->camera.aspect_ratio = (float)app->displaySize.x / (float)app->displaySize.y;
 	app->camera.projectionMatrix = glm::perspective(glm::radians(app->camera.vertical_fov), app->camera.aspect_ratio, app->camera.nearPlane, app->camera.farPlane);
@@ -405,11 +405,9 @@ void Init(App* app)
 	}
 
 	// ----------- Directional Lights -----------
-
 	app->lights.push_back(Light(glm::vec3(-20.0f, 45.0f, 3.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(-1.0, -1.0, 0.0), 10U));
 	app->lights.push_back(Light(glm::vec3(22.0f, 35.0f, -6.f), glm::vec3(0.3f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 0.0), 10U));
 	
-	app->lights.push_back(Light(glm::vec3(-0.0f, 25.0f,0.f), glm::vec3(1.0f, 0.0f, 0.0f)));
 	// FBO --------------
 	app->gFbo.Initialize(app->displaySize.x, app->displaySize.y);
 	app->shadingFbo.Initialize(app->displaySize.x, app->displaySize.y);
