@@ -383,7 +383,7 @@ void Init(App* app)
 		for (int y = -COLUMNS; y < COLUMNS; ++y)
 		{
 			Entity e1 = Entity(glm::mat4(1.0), app->model, 0, 0, EntityType::PATRICK);
-			e1.worldMatrix = TransformPositionScale(vec3(x * distance, 2.4f, y * distance), vec3(1.0f));
+			e1.worldMatrix = TransformPositionScale(vec3((float)x * (float)distance, 2.4f, (float)y * (float)distance), vec3(1.0f));
 			app->entities.push_back(e1);
 		}
 	}
@@ -400,7 +400,7 @@ void Init(App* app)
 		for (int y = -LIGHTS; y < LIGHTS; ++y)
 		{
 			vec3 color = GenerateRandomBrightColor();
-			app->lights.push_back(Light(glm::vec3(x * distance, 1.0f, y * distance + offset), glm::vec3(color.x, color.y, color.z)));
+			app->lights.push_back(Light(glm::vec3((float)x * (float)distance, 1.0f, y * (float)distance + (float)offset), glm::vec3(color.x, color.y, color.z)));
 		}
 	}
 
@@ -409,7 +409,7 @@ void Init(App* app)
 	app->lights.push_back(Light(glm::vec3(-20.0f, 45.0f, 3.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(-1.0, -1.0, 0.0), 10U));
 	app->lights.push_back(Light(glm::vec3(22.0f, 35.0f, -6.f), glm::vec3(0.3f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 0.0), 10U));
 	
-
+	app->lights.push_back(Light(glm::vec3(-0.0f, 25.0f,0.f), glm::vec3(1.0f, 0.0f, 0.0f)));
 	// FBO --------------
 	app->gFbo.Initialize(app->displaySize.x, app->displaySize.y);
 	app->shadingFbo.Initialize(app->displaySize.x, app->displaySize.y);
@@ -430,9 +430,9 @@ void Gui(App* app)
 	if (app->show_opengl_info)
 	{
 		ImGui::Begin("Info", &app->show_opengl_info);
-		
+
 		// FPS information ------------------
-		ImGui::Text("FPS: %f", 1.0f/app->deltaTime);
+		ImGui::Text("FPS: %f", 1.0f / app->deltaTime);
 
 		// OpenGL information ------------------
 		ImGui::Text("OpenGL version: %s", app->info.version.c_str());
@@ -444,41 +444,23 @@ void Gui(App* app)
 
 		// Camera information -------------------
 		ImGui::Separator();
-		ImGui::Text("Camera"); 
+		ImGui::Text("Camera");
 		ImGui::PushItemWidth(100);
-		ImGui::DragFloat("X", &app->camera.position.x);  
+		ImGui::DragFloat("X", &app->camera.position.x);
 		ImGui::SameLine();
-		ImGui::DragFloat("Y", &app->camera.position.y); 
+		ImGui::DragFloat("Y", &app->camera.position.y);
 		ImGui::SameLine();
 		ImGui::DragFloat("Z", &app->camera.position.z);
 		ImGui::PopItemWidth();
-		
+
 		ImGui::PushItemWidth(80);
 		ImGui::DragFloat("Yaw", &app->camera.yaw);
 		ImGui::SameLine();
 		ImGui::DragFloat("Pitch", &app->camera.pitch);
 		ImGui::SameLine();
-		ImGui::DragFloat("Roll", &app->camera.roll);	
+		ImGui::DragFloat("Roll", &app->camera.roll);
 		ImGui::PopItemWidth();
 
-		// Light information -------------------
-		ImGui::Separator();
-		ImGui::Text("Lights");
-		ImGui::Spacing();
-		int j = 1;
-		for (int i = 0; i < app->lights.size(); ++i) {
-			ImGui::PushID(i);
-			if (app->lights[i].type == LightType::LIGHT_TYPE_DIRECTIONAL)
-			{
-				ImGui::Text("Directional Light %d", j);
-				ImGui::ColorEdit3("color", glm::value_ptr(app->lights[i].color), ImGuiColorEditFlags_::ImGuiColorEditFlags_Uint8);
-				ImGui::DragFloat3("direction", glm::value_ptr(app->lights[i].direction), 0.01f);
-				ImGui::DragInt("intensity", (int*)&app->lights[i].intensity, 0.5f, 0, 100);
-				j++;
-			}
-			ImGui::PopID();
-			//ImGui::NewLine();
-		}
 		// Render target information -------------------
 		ImGui::Separator();
 		ImGui::Text("Render Targets");
@@ -489,7 +471,55 @@ void Gui(App* app)
 			app->displayedTexture = (RenderTargetType)item_current;
 		}
 
-		ImGui::End();
+
+		// Light information -------------------
+		ImGui::Separator();
+		ImGui::Text("Lights");
+		ImGui::Spacing();
+		if (ImGui::TreeNode("Directional Lights"))
+		{
+			int j = 1;
+			for (int i = 0; i < app->lights.size(); ++i) {
+				if (app->lights[i].type == LightType::LIGHT_TYPE_DIRECTIONAL)
+				{
+					ImGui::PushID(i);
+
+					ImGui::Text("Directional Light %d", j);
+					ImGui::ColorEdit3("color", glm::value_ptr(app->lights[i].color), ImGuiColorEditFlags_::ImGuiColorEditFlags_Uint8);
+					ImGui::DragFloat3("direction", glm::value_ptr(app->lights[i].direction), 0.01f);
+					ImGui::DragInt("intensity", (int*)&app->lights[i].intensity, 0.5f, 0, 100);
+					j++;
+
+					ImGui::PopID();
+				}
+				//ImGui::NewLine();
+			}
+		ImGui::TreePop();
+		}
+	
+
+		if (ImGui::TreeNode("Point Lights"))
+		{
+			int j = 1;
+			for (int i = 0; i < app->lights.size(); ++i) {
+				if (app->lights[i].type == LightType::LIGHT_TYPE_POINT)
+				{
+					ImGui::PushID(i);
+					ImGui::Text("Point Light %d", j);
+					ImGui::ColorEdit3("color", glm::value_ptr(app->lights[i].color), ImGuiColorEditFlags_::ImGuiColorEditFlags_Uint8);
+					ImGui::DragFloat3("position", glm::value_ptr(app->lights[i].position), 0.01f);
+					ImGui::DragInt("intensity", (int*)&app->lights[i].intensity, 0.5f, 0, 100);
+					j++;
+					ImGui::PopID();
+				}
+				//ImGui::NewLine();
+			}
+		ImGui::TreePop();
+		}
+
+
+	ImGui::End();
+
 	}
 }
 
@@ -901,5 +931,5 @@ vec3 GenerateRandomBrightColor()
 	rgb[min] = 0;
 
 
-	return vec3(rgb[0], rgb[1], rgb[2]) / 255.f;
+	return vec3((float)rgb[0], (float)rgb[1], (float)rgb[2]) / 255.f;
 }
