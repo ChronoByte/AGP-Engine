@@ -406,7 +406,7 @@ void Init(App* app)
 
 	// ----------- Directional Lights -----------
 
-	app->lights.push_back(Light(glm::vec3(-20.0f, 45.0f, 3.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, 1.0, 0.0), 10U));
+	app->lights.push_back(Light(glm::vec3(-20.0f, 45.0f, 3.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(-1.0, -1.0, 0.0), 10U));
 	app->lights.push_back(Light(glm::vec3(22.0f, 35.0f, -6.f), glm::vec3(0.3f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 0.0), 10U));
 	
 
@@ -461,6 +461,24 @@ void Gui(App* app)
 		ImGui::DragFloat("Roll", &app->camera.roll);	
 		ImGui::PopItemWidth();
 
+		// Light information -------------------
+		ImGui::Separator();
+		ImGui::Text("Lights");
+		ImGui::Spacing();
+		int j = 1;
+		for (int i = 0; i < app->lights.size(); ++i) {
+			ImGui::PushID(i);
+			if (app->lights[i].type == LightType::LIGHT_TYPE_DIRECTIONAL)
+			{
+				ImGui::Text("Directional Light %d", j);
+				ImGui::DragFloat3("color", glm::value_ptr(app->lights[i].color), 0.01f);
+				ImGui::DragFloat3("direction", glm::value_ptr(app->lights[i].direction), 0.01f);
+				ImGui::DragInt("intensity", (int*)&app->lights[i].intensity, 0.01f);
+				j++;
+			}
+			ImGui::PopID();
+			//ImGui::NewLine();
+		}
 		// Render target information -------------------
 		ImGui::Separator();
 		ImGui::Text("Render Targets");
