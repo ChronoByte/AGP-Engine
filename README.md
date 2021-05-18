@@ -1,6 +1,14 @@
 # AGP-Engine
 
-This project consists in creating a deferred renderer for the second assignment of the Advanced Graphics Programming subject at UPC.
+Rendering-oriented engine for Advanced Graphics Programming (AGP) subject of the Bachelor's Degree in Game Development at CITM, UPC.
+This project consists in creating a deferred renderer for the second assignment of the subject.
+
+Made by Carlos Peña and Sebastià Lopez.
+
+## Deferred Shading
+<p align="center">
+<img src="https://github.com/ChronoByte/AGP-Engine/blob/main/Doc/image.PNG" >
+</p>
 
 **GitHub repository:** [https://github.com/ChronoByte/AGP-Engine](https://github.com/ChronoByte/AGP-Engine)
 
