@@ -471,9 +471,9 @@ void Gui(App* app)
 			if (app->lights[i].type == LightType::LIGHT_TYPE_DIRECTIONAL)
 			{
 				ImGui::Text("Directional Light %d", j);
-				ImGui::DragFloat3("color", glm::value_ptr(app->lights[i].color), 0.01f);
+				ImGui::ColorEdit3("color", glm::value_ptr(app->lights[i].color), ImGuiColorEditFlags_::ImGuiColorEditFlags_Uint8);
 				ImGui::DragFloat3("direction", glm::value_ptr(app->lights[i].direction), 0.01f);
-				ImGui::DragInt("intensity", (int*)&app->lights[i].intensity, 0.01f);
+				ImGui::DragInt("intensity", (int*)&app->lights[i].intensity, 0.5f, 0, 100);
 				j++;
 			}
 			ImGui::PopID();
