@@ -116,6 +116,7 @@ void ProcessAssimpMaterial(App* app, aiMaterial *material, Material& myMaterial,
         String filename = MakeString(aiFilename.C_Str());
         String filepath = MakePath(directory, filename);
         myMaterial.albedoTextureIdx = LoadTexture2D(app, filepath.str);
+		
     }
     if (material->GetTextureCount(aiTextureType_EMISSIVE) > 0)
     {

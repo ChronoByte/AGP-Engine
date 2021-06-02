@@ -707,11 +707,11 @@ void Render(App* app)
 			
 			
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, app->reliefDiffuseIdx);
+			glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefDiffuseIdx].handle);
 			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, app->reliefNormalIdx);
+			glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefNormalIdx].handle);
 			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, app->reliefHeightIdx);
+			glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefHeightIdx].handle);
 
 
 			renderQuadTangentSpace();
