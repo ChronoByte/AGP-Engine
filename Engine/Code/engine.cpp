@@ -317,6 +317,8 @@ void Init(App* app)
 
 
 	//--------------------- MODEL ---------------------- //
+	
+
 
 	
 	// Camera -----------
@@ -333,22 +335,23 @@ void Init(App* app)
 
 
 	// Attributes Program ----------
-	int attributeCount;
-	glGetProgramiv(texturedMeshProgram.handle, GL_ACTIVE_ATTRIBUTES, &attributeCount);
-
-	GLchar attributeName[64];
-	GLsizei attributeNameLength;
-	GLint attributeSize;
-	GLenum attributeType;
-
-	for (int i = 0; i < attributeCount; ++i)
 	{
-		glGetActiveAttrib(texturedMeshProgram.handle, i, 64, &attributeNameLength, &attributeSize, &attributeType, attributeName);
+		int attributeCount;
+		glGetProgramiv(texturedMeshProgram.handle, GL_ACTIVE_ATTRIBUTES, &attributeCount);
 
-		GLint attributeLocation = glGetAttribLocation(texturedMeshProgram.handle, attributeName);
-		texturedMeshProgram.vertexInputLayout.attributes.push_back({(u8)attributeLocation,(u8)attributeSize }); 
+		GLchar attributeName[64];
+		GLsizei attributeNameLength;
+		GLint attributeSize;
+		GLenum attributeType;
+
+		for (int i = 0; i < attributeCount; ++i)
+		{
+			glGetActiveAttrib(texturedMeshProgram.handle, i, 64, &attributeNameLength, &attributeSize, &attributeType, attributeName);
+
+			GLint attributeLocation = glGetAttribLocation(texturedMeshProgram.handle, attributeName);
+			texturedMeshProgram.vertexInputLayout.attributes.push_back({ (u8)attributeLocation,(u8)attributeSize });
+		}
 	}
-
 	// Uniform blocks ---------
 
 	// Local Params
@@ -365,6 +368,7 @@ void Init(App* app)
 	app->model = LoadModel(app, "Patrick/Patrick.obj");
 	app->plane = app->geo.LoadPlane(app);
 	app->sphere = app->geo.LoadSphere(app);
+
 	app->mode = Mode_Model;
 
 	// -------------------------------- ENTITIES --------------------------------
@@ -407,6 +411,41 @@ void Init(App* app)
 	// ----------- Directional Lights -----------
 	app->lights.push_back(Light(glm::vec3(-20.0f, 45.0f, 3.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(-1.0, -1.0, 0.0), 10U));
 	app->lights.push_back(Light(glm::vec3(22.0f, 35.0f, -6.f), glm::vec3(0.3f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 0.0), 10U));
+	
+
+
+
+	// -------------------------------- RELIEF MAPPING --------------------------------
+	
+	//Shader
+	app->reliefMapShaderID = LoadProgram(app, "shaders.glsl", "RELIEF_MAPPING_SHADER");
+	Program& reliefMapShader = app->programs[app->reliefMapShaderID];
+
+	
+	// Attributes Program ----------
+	{
+		int attributeCount;
+		glGetProgramiv(reliefMapShader.handle, GL_ACTIVE_ATTRIBUTES, &attributeCount);
+
+		GLchar attributeName[64];
+		GLsizei attributeNameLength;
+		GLint attributeSize;
+		GLenum attributeType;
+
+		for (int i = 0; i < attributeCount; ++i)
+		{
+			glGetActiveAttrib(reliefMapShader.handle, i, 64, &attributeNameLength, &attributeSize, &attributeType, attributeName);
+
+			GLint attributeLocation = glGetAttribLocation(reliefMapShader.handle, attributeName);
+			reliefMapShader.vertexInputLayout.attributes.push_back({ (u8)attributeLocation,(u8)attributeSize });
+		}
+	}
+
+	//Textures
+	app->reliefDiffuseIdx = LoadTexture2D(app, "Relief/bricks2.jpg");
+	app->reliefNormalIdx = LoadTexture2D(app, "Relief/bricks2_normal.jpg");
+	app->reliefHeightIdx = LoadTexture2D(app, "Relief/bricks2_disp.jpg");
+
 	
 	// FBO --------------
 	app->gFbo.Initialize(app->displaySize.x, app->displaySize.y);
@@ -583,10 +622,18 @@ void Update(App* app)
 }
 
 void renderQuad(App* app);
+void renderQuadTangentSpace();
 
 void Render(App* app)
 {
 	// Clear the screen (also ImGui...)
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, app->displaySize.x, app->displaySize.y);
@@ -631,11 +678,54 @@ void Render(App* app)
 		{
 			
 			app->gFbo.Bind();
+			
+			// Relief Mapping --------------------------------
+
+			glm::vec3 light_test = glm::vec3(0.5f, 1.0f, 0.3f);
+
+			Program& reliefMapShading = app->programs[app->reliefMapShaderID];
+			glUseProgram(reliefMapShading.handle);
+
+			glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "projection"), 1, GL_FALSE, (GLfloat*)&app->camera.projectionMatrix);
+			glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "view"), 1, GL_FALSE, (GLfloat*)&app->camera.viewMatrix);
+			glm::mat4 modelMatrix = glm::mat4(1.0f);
+			modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 10.0f, 0.0f));
+			glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "model"), 1, GL_FALSE, (GLfloat*)&modelMatrix);
+
+			glUniform3f(glGetUniformLocation(reliefMapShading.handle, "viewPos"), app->camera.position.x, app->camera.position.y, app->camera.position.z);
+			glUniform3f(glGetUniformLocation(reliefMapShading.handle, "lightPos"), light_test.x, light_test.y, light_test.z);
+			glUniform1f(glGetUniformLocation(reliefMapShading.handle, "heightScale"), app->heigth_scale);
+
+
+			glUniform1i(glGetUniformLocation(reliefMapShading.handle, "diffuseMap"), 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, app->reliefDiffuseIdx);
+			glUniform1i(glGetUniformLocation(reliefMapShading.handle, "normalMap"), 1);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, app->reliefNormalIdx);
+			glUniform1i(glGetUniformLocation(reliefMapShading.handle, "depthMap"), 2);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, app->reliefHeightIdx);
+
+
+			renderQuadTangentSpace();
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			glUseProgram(0);
+			
+			// --------------------------------
 
 			Program& texturedMeshProgram = app->programs[app->geometryPassShaderID];
 			glUseProgram(texturedMeshProgram.handle);
 
 			glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
+			
 
 			for (int i = 0; i < app->entities.size(); ++i)
 			{
@@ -661,9 +751,11 @@ void Render(App* app)
 					glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
 				}
 
-			}	
-
+			}
+		
 			app->gFbo.Unbind();
+
+
 		}
 		break;
        
@@ -675,6 +767,8 @@ void Render(App* app)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
+
+	
 	// --------------------------------------- SHADING PASS -------------------------------------
 
 	glDisable(GL_DEPTH_TEST);
@@ -796,6 +890,102 @@ void Render(App* app)
 	// -------------------------------------------------------------------------------------------------
 	
 }
+unsigned int quadVAO2 = 0;
+unsigned int quadVBO2;
+void renderQuadTangentSpace()
+{
+	if (quadVAO2 == 0)
+	{
+		// positions
+		glm::vec3 pos1(-1.0f, 1.0f, 0.0f);
+		glm::vec3 pos2(-1.0f, -1.0f, 0.0f);
+		glm::vec3 pos3(1.0f, -1.0f, 0.0f);
+		glm::vec3 pos4(1.0f, 1.0f, 0.0f);
+		// texture coordinates
+		glm::vec2 uv1(0.0f, 1.0f);
+		glm::vec2 uv2(0.0f, 0.0f);
+		glm::vec2 uv3(1.0f, 0.0f);
+		glm::vec2 uv4(1.0f, 1.0f);
+		// normal vector
+		glm::vec3 nm(0.0f, 0.0f, 1.0f);
+
+		// calculate tangent/bitangent vectors of both triangles
+		glm::vec3 tangent1, bitangent1;
+		glm::vec3 tangent2, bitangent2;
+		// triangle 1
+		// ----------
+		glm::vec3 edge1 = pos2 - pos1;
+		glm::vec3 edge2 = pos3 - pos1;
+		glm::vec2 deltaUV1 = uv2 - uv1;
+		glm::vec2 deltaUV2 = uv3 - uv1;
+
+		float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+		tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+		tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+		tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+		tangent1 = glm::normalize(tangent1);
+
+		bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+		bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+		bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+		bitangent1 = glm::normalize(bitangent1);
+
+		// triangle 2
+		// ----------
+		edge1 = pos3 - pos1;
+		edge2 = pos4 - pos1;
+		deltaUV1 = uv3 - uv1;
+		deltaUV2 = uv4 - uv1;
+
+		f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+		tangent2.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+		tangent2.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+		tangent2.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+		tangent2 = glm::normalize(tangent2);
+
+
+		bitangent2.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+		bitangent2.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+		bitangent2.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+		bitangent2 = glm::normalize(bitangent2);
+
+
+		float quadVertices[] = {
+			// positions            // normal         // texcoords  // tangent                          // bitangent
+			pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
+			pos2.x, pos2.y, pos2.z, nm.x, nm.y, nm.z, uv2.x, uv2.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
+			pos3.x, pos3.y, pos3.z, nm.x, nm.y, nm.z, uv3.x, uv3.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
+
+			pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z,
+			pos3.x, pos3.y, pos3.z, nm.x, nm.y, nm.z, uv3.x, uv3.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z,
+			pos4.x, pos4.y, pos4.z, nm.x, nm.y, nm.z, uv4.x, uv4.y, tangent2.x, tangent2.y, tangent2.z, bitangent2.x, bitangent2.y, bitangent2.z
+		};
+		// configure plane VAO
+		glGenVertexArrays(1, &quadVAO2);
+		glGenBuffers(1, &quadVBO2);
+		glBindVertexArray(quadVAO2);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO2);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(6 * sizeof(float)));
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float)));
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float)));
+	}
+	glBindVertexArray(quadVAO2);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
+}
+
+
+
 
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
@@ -827,6 +1017,7 @@ void renderQuad(App* app)
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 }
+
 
 GLuint FindVAO(Mesh& mesh, u32 submeshIndex, const Program& program)
 {

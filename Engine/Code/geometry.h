@@ -101,8 +101,12 @@ struct Geometry
 
 	Model planeModel;
 	Model sphereModel;
+	Model cubeModel;
 
 	u32 LoadPlane(App* app);
 	u32 LoadSphere(App* app);
+	u32 LoadCube(App* app);
+
+	void CalculateTangentSpace(std::vector<GLfloat>& vertices, std::vector<glm::vec3>& tangents, std::vector<glm::vec3>& bitangents);
 };
 

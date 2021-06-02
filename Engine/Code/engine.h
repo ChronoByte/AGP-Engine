@@ -102,7 +102,8 @@ struct App
 	u32 texturedMeshProgramIdx;
     u32 geometryPassShaderID; 
     u32 shadingPassShaderID; 
-    u32 lightsShaderID; 
+    u32 lightsShaderID;
+	u32 reliefMapShaderID;
 
     // texture indices
     u32 diceTexIdx;
@@ -133,6 +134,17 @@ struct App
     GLuint programLightsUniformColor; 
     GLuint programLightsUniformWorldMatrix;
 
+	//Relief Mapping uniform locations
+	GLuint programReliefMapUniformTextureDiffuse;
+	GLuint programReliefMapUniformTextureNormalMap;
+	GLuint programReliefMapUniformTextureDepthMap;
+	GLuint programReliefMapUniformModelMatrix;
+	GLuint programReliefMapUniformViewMatrix;
+	GLuint programReliefMapUniformProjectionMatrix;
+	GLuint programReliefMapUniformLightPos;
+	GLuint programReliefMapUniformViewPos;
+	GLuint programReliefMapUniformHeightScale;
+
     // VAO object to link our screen filling quad with our textured quad shader
     GLuint vao;
 
@@ -140,6 +152,7 @@ struct App
 	u32 model;
 	u32 plane;
 	u32 sphere;
+	u32 cube;
 	u32 texturedMeshProgram_uTexture;
 	Geometry geo;
 
@@ -181,6 +194,12 @@ struct App
     ShadingBuffer shadingFbo; 
 
     RenderTargetType displayedTexture = RenderTargetType::RENDER_TEXTURE;
+
+	//Relief Mapping 
+	float heigth_scale = 0.1f;
+	u32 reliefDiffuseIdx;
+	u32 reliefNormalIdx;
+	u32 reliefHeightIdx;
 };
 
 
