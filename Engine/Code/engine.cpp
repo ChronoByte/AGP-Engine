@@ -204,6 +204,7 @@ void Init(App* app)
 		app->info.extensions.push_back((const char*)glGetStringi(GL_EXTENSIONS, GLuint(i)));
 	}
 
+	
 
 
 	//--------------------- TEXTURED QUAD ---------------------- //
@@ -413,15 +414,13 @@ void Init(App* app)
 	app->lights.push_back(Light(glm::vec3(22.0f, 35.0f, -6.f), glm::vec3(0.3f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 0.0), 10U));
 	
 
-
-
 	// -------------------------------- RELIEF MAPPING --------------------------------
-	
+
 	//Shader
 	app->reliefMapShaderID = LoadProgram(app, "shaders.glsl", "RELIEF_MAPPING_SHADER");
 	Program& reliefMapShader = app->programs[app->reliefMapShaderID];
 
-	
+
 	// Attributes Program ----------
 	{
 		int attributeCount;
@@ -446,6 +445,12 @@ void Init(App* app)
 	app->reliefNormalIdx = LoadTexture2D(app, "Relief/bricks2_normal.jpg");
 	app->reliefHeightIdx = LoadTexture2D(app, "Relief/bricks2_disp.jpg");
 
+	glUseProgram(reliefMapShader.handle);
+	glUniform1i(glGetUniformLocation(reliefMapShader.handle, "diffuseMap"), 0);
+	glUniform1i(glGetUniformLocation(reliefMapShader.handle, "normalMap"), 1);
+	glUniform1i(glGetUniformLocation(reliefMapShader.handle, "depthMap"), 2);
+
+	
 	
 	// FBO --------------
 	app->gFbo.Initialize(app->displaySize.x, app->displaySize.y);
@@ -633,6 +638,7 @@ void Render(App* app)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glUseProgram(0);
 
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -679,6 +685,7 @@ void Render(App* app)
 			
 			app->gFbo.Bind();
 			
+			
 			// Relief Mapping --------------------------------
 
 			glm::vec3 light_test = glm::vec3(0.5f, 1.0f, 0.3f);
@@ -697,13 +704,12 @@ void Render(App* app)
 			glUniform1f(glGetUniformLocation(reliefMapShading.handle, "heightScale"), app->heigth_scale);
 
 
-			glUniform1i(glGetUniformLocation(reliefMapShading.handle, "diffuseMap"), 0);
+			
+			
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, app->reliefDiffuseIdx);
-			glUniform1i(glGetUniformLocation(reliefMapShading.handle, "normalMap"), 1);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, app->reliefNormalIdx);
-			glUniform1i(glGetUniformLocation(reliefMapShading.handle, "depthMap"), 2);
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, app->reliefHeightIdx);
 
@@ -718,8 +724,13 @@ void Render(App* app)
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			glUseProgram(0);
-			
+
 			// --------------------------------
+
+
+
+
+
 
 			Program& texturedMeshProgram = app->programs[app->geometryPassShaderID];
 			glUseProgram(texturedMeshProgram.handle);
