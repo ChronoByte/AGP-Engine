@@ -233,9 +233,15 @@ void Init(App* app)
 	glBindVertexArray(0);
 
 	// Program 
-	app->texturedGeometryProgramIdx = LoadProgram(app, "shaders.glsl", "TEXTURED_GEOMETRY");
-	Program& texturedGeometryProgram = app->programs[app->texturedGeometryProgramIdx];
-	app->programUniformTexture = glGetUniformLocation(texturedGeometryProgram.handle, "uTexture");
+	app->finalPassShaderIdx = LoadProgram(app, "shaders.glsl", "FINAL_PASS_SHADER");
+	Program& finalPassShader = app->programs[app->finalPassShaderIdx];
+
+	glUseProgram(finalPassShader.handle);
+	glUniform1i(glGetUniformLocation(finalPassShader.handle, "sceneTexture"), 0);
+	glUniform1i(glGetUniformLocation(finalPassShader.handle, "bloomBlurTexture"), 1);
+	glUseProgram(0);
+
+
 
 	app->geometryPassShaderID = LoadProgram(app, "shaders.glsl", "GEOMETRY_PASS_SHADER");
 	Program& geometryPassShader = app->programs[app->geometryPassShaderID];
@@ -542,6 +548,11 @@ void Gui(App* app)
 			app->displayedTexture = (RenderTargetType)item_current;
 		}
 
+		ImGui::Separator();
+		ImGui::Text("Bloom");
+		ImGui::Checkbox("Bloom", &app->using_bloom);
+		ImGui::DragInt("Blur Iterations", &app->blurIterations, 2.0f, 0, 50);
+		//ImGui::DragFloat("Threshold", &app->bright_threshold, 0.05f, 0.0f, 20.f);
 
 		// Light information -------------------
 		ImGui::Separator();
@@ -657,6 +668,7 @@ void Update(App* app)
 
 void renderQuad();
 void renderQuadTangentSpace();
+u32 GetFinalTextureToRender(App* app);
 
 void Render(App* app)
 {
@@ -778,6 +790,9 @@ void Render(App* app)
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(DEPTH_TEXTURE));
 
+	glUniform1i(glGetUniformLocation(shaderPassProgram.handle, "bright_color_threshold"), app->bright_threshold);
+
+
 	renderQuad();
 
 	app->shadingFbo.Unbind();
@@ -853,26 +868,21 @@ void Render(App* app)
 	// --------------------------------------- BLOOM PASS -------------------------------------
 	
 	Program& blurShader = app->programs[app->blurShaderID];
-	app->blurFbo.BlurImage(10, app->shadingFbo.GetTexture(BRIGHT_COLOR_TEXTURE), blurShader, renderQuad);
+	app->blurFbo.BlurImage(app->blurIterations, app->shadingFbo.GetTexture(BRIGHT_COLOR_TEXTURE), blurShader, renderQuad);
 
 	// --------------------------------------- RENDER SCREEN QUAD -------------------------------------
 
-	Program& programTexturedGeometry = app->programs[app->texturedGeometryProgramIdx];
-	glUseProgram(programTexturedGeometry.handle);
+	Program& finalPassShader = app->programs[app->finalPassShaderIdx];
+	glUseProgram(finalPassShader.handle);
 
-	glUniform1i(app->programUniformTexture, 0);
+	glUniform1i(glGetUniformLocation(finalPassShader.handle, "using_bloom"), app->using_bloom);
 	glActiveTexture(GL_TEXTURE0);
-	if (app->displayedTexture == RENDER_TEXTURE || app->displayedTexture == BRIGHT_COLOR_TEXTURE)
+	glBindTexture(GL_TEXTURE_2D, GetFinalTextureToRender(app));
+	
+	if (app->using_bloom && app->displayedTexture == RENDER_TEXTURE)
 	{
-		glBindTexture(GL_TEXTURE_2D, app->shadingFbo.GetTexture(app->displayedTexture));
-	}
-	else if (app->displayedTexture == BLURRED_TEXTURE)
-	{
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, app->blurFbo.GetBlurredTexture());
-	}
-	else
-	{
-		glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(app->displayedTexture));
 	}
 
 	renderQuad();
@@ -1115,3 +1125,24 @@ vec3 GenerateRandomBrightColor()
 
 	return vec3((float)rgb[0], (float)rgb[1], (float)rgb[2]) / 255.f;
 }
+
+u32 GetFinalTextureToRender(App* app)
+{
+	u32 texture = 0U; 
+
+	if (app->displayedTexture == RENDER_TEXTURE || app->displayedTexture == BRIGHT_COLOR_TEXTURE)
+	{
+		texture = app->shadingFbo.GetTexture(app->displayedTexture);
+	}
+	else if (app->displayedTexture == BLURRED_TEXTURE)
+	{
+		texture = app->blurFbo.GetBlurredTexture();
+	}
+	else
+	{
+		texture = app->gFbo.GetTexture(app->displayedTexture);
+	}
+
+	return texture;
+}
+

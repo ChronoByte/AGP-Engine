@@ -3,17 +3,16 @@
 ///////////////////////////////////////////////////////////////////////
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// TEXTURED GEOMETRY SHADER
+// FINAL PASS SHADER
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-#ifdef TEXTURED_GEOMETRY
+#ifdef FINAL_PASS_SHADER
 
 #if defined(VERTEX) ///////////////////////////////////////////////////
 
 // TODO: Write your vertex shader here
 
 layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTexCoord;
 
 out vec2 vTexCoord;
@@ -30,13 +29,23 @@ void main()
 
 in vec2 vTexCoord;
 
-uniform sampler2D uTexture;
+uniform sampler2D sceneTexture;
+uniform sampler2D bloomBlurTexture;
+uniform bool using_bloom; 
 
-layout(location = 0) out vec4 oColor;
+layout(location = 0) out vec4 FragColor;
 
 void main()
 {
-	oColor = texture(uTexture, vTexCoord);
+	vec4 sceneColor = texture(sceneTexture, vTexCoord);
+	vec4 bloomColor = texture(bloomBlurTexture, vTexCoord);
+
+	if (using_bloom)
+	{
+		sceneColor += bloomColor; 
+	}
+
+	FragColor = vec4(sceneColor.xyz, 1.0);
 }
 
 #endif
@@ -344,6 +353,8 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
 uniform sampler2D gDepth;
+
+uniform int bright_color_threshold; 
 
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 BrightColor;

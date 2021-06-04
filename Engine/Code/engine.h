@@ -98,7 +98,7 @@ struct App
 	std::vector<Program>  programs;
 
     // program indices
-    u32 texturedGeometryProgramIdx;
+    u32 finalPassShaderIdx;
 	u32 texturedMeshProgramIdx;
     u32 geometryPassShaderID; 
     u32 shadingPassShaderID; 
@@ -126,7 +126,6 @@ struct App
     GLuint embeddedElements;
 
     // Location of the texture uniform in the textured quad shader
-    GLuint programUniformTexture;
     GLuint programGPassUniformTexture;
     GLuint programShadingPassUniformTexturePosition;
     GLuint programShadingPassUniformTextureNormals;
@@ -202,6 +201,11 @@ struct App
 	u32 reliefDiffuseIdx;
 	u32 reliefNormalIdx;
 	u32 reliefHeightIdx;
+
+    // Bloom
+    bool using_bloom = false;
+    int blurIterations = 10;
+    float bright_threshold = 1;
 };
 
 
