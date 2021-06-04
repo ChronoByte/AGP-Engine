@@ -308,6 +308,34 @@ void Init(App* app)
 		}
 
 	}
+
+	app->blurShaderID = LoadProgram(app, "shaders.glsl", "BLUR_SHADER");
+	Program& blurShader = app->programs[app->blurShaderID];
+
+	glUseProgram(blurShader.handle);
+	glUniform1i(glGetUniformLocation(blurShader.handle, "image"), 0);
+
+	// Attributes Program ----------
+	{
+		int attributeCount;
+		glGetProgramiv(blurShader.handle, GL_ACTIVE_ATTRIBUTES, &attributeCount);
+
+		GLchar attributeName[64];
+		GLsizei attributeNameLength;
+		GLint attributeSize;
+		GLenum attributeType;
+
+		for (int i = 0; i < attributeCount; ++i)
+		{
+			glGetActiveAttrib(blurShader.handle, i, 64, &attributeNameLength, &attributeSize, &attributeType, attributeName);
+
+			GLint attributeLocation = glGetAttribLocation(blurShader.handle, attributeName);
+			blurShader.vertexInputLayout.attributes.push_back({ (u8)attributeLocation,(u8)attributeSize });
+		}
+	}
+	glUseProgram(0);
+
+
 	// Textures 
 	app->diceTexIdx = LoadTexture2D(app, "dice.png");
 	app->whiteTexIdx = LoadTexture2D(app, "color_white.png");
@@ -455,6 +483,7 @@ void Init(App* app)
 	// FBO --------------
 	app->gFbo.Initialize(app->displaySize.x, app->displaySize.y);
 	app->shadingFbo.Initialize(app->displaySize.x, app->displaySize.y);
+	app->blurFbo.Initialize(app->displaySize.x, app->displaySize.y);
 }
 
 void Gui(App* app)
@@ -506,7 +535,7 @@ void Gui(App* app)
 		// Render target information -------------------
 		ImGui::Separator();
 		ImGui::Text("Render Targets");
-		const char* items[] = { "Default", "G_Position", "G_Normals", "G_Albedo", "Depth Texture" };
+		const char* items[] = { "Default", "G_Position", "G_Normals", "G_Albedo", "Depth Texture", "Bright Color Texture", "Blurred Bloom Texture" };
 		static int item_current = 0;
 		if (ImGui::Combo("Render Target", &item_current, items, IM_ARRAYSIZE(items)))
 		{
@@ -626,7 +655,7 @@ void Update(App* app)
 	UnmapBuffer(app->ubuffer);
 }
 
-void renderQuad(App* app);
+void renderQuad();
 void renderQuadTangentSpace();
 
 void Render(App* app)
@@ -806,7 +835,7 @@ void Render(App* app)
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(DEPTH_TEXTURE));
 
-	renderQuad(app);
+	renderQuad();
 
 	app->shadingFbo.Unbind();
 
@@ -877,6 +906,15 @@ void Render(App* app)
 	}
 
 	app->shadingFbo.Unbind();
+
+	// --------------------------------------- BLOOM PASS -------------------------------------
+	
+	Program& blurShader = app->programs[app->blurShaderID];
+	app->blurFbo.BlurImage(10, app->shadingFbo.GetTexture(BRIGHT_COLOR_TEXTURE), blurShader, renderQuad);
+
+	// -------------------------------------------------------------------------------------------------
+
+
 	// --------------------------------------- RENDER SCREEN QUAD -------------------------------------
 
 	Program& programTexturedGeometry = app->programs[app->texturedGeometryProgramIdx];
@@ -884,16 +922,20 @@ void Render(App* app)
 
 	glUniform1i(app->programUniformTexture, 0);
 	glActiveTexture(GL_TEXTURE0);
-	if (app->displayedTexture == RENDER_TEXTURE)
+	if (app->displayedTexture == RENDER_TEXTURE || app->displayedTexture == BRIGHT_COLOR_TEXTURE)
 	{
-		glBindTexture(GL_TEXTURE_2D, app->shadingFbo.GetTexture(RENDER_TEXTURE));
+		glBindTexture(GL_TEXTURE_2D, app->shadingFbo.GetTexture(app->displayedTexture));
+	}
+	else if (app->displayedTexture == BLURRED_TEXTURE)
+	{
+		glBindTexture(GL_TEXTURE_2D, app->blurFbo.GetBlurredTexture());
 	}
 	else
 	{
 		glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(app->displayedTexture));
 	}
 
-	renderQuad(app);
+	renderQuad();
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
@@ -1000,7 +1042,7 @@ void renderQuadTangentSpace()
 
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
-void renderQuad(App* app)
+void renderQuad()
 {
 	if (quadVAO == 0)
 	{

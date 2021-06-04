@@ -9,10 +9,14 @@ enum RenderTargetType
 	G_NORMALS_TEXTURE,
 	G_ALBEDO_TEXTURE,
 	DEPTH_TEXTURE,
+	BRIGHT_COLOR_TEXTURE,
+	BLURRED_TEXTURE,
 	FBO,
 	ZBO,
 	MAX
 };
+
+class Program;
 
 class FrameBufferObject
 {
@@ -62,4 +66,23 @@ public:
 	void FreeMemory() override; 
 
 	void UpdateFBO() override;
+};
+
+class PingPongBuffer : public FrameBufferObject
+{
+public:
+	void ReserveMemory() override;
+	void FreeMemory() override;
+
+	void UpdateFBO() override;
+
+	void BlurImage(int iterations, u32 colorTexture, Program shaderBlur, void (*f)());
+
+	u32 GetBlurredTexture();
+
+private:
+
+	u32 pingPongFBO[2];
+	u32 pingPongTextures[2];
+
 };

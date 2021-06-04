@@ -104,6 +104,7 @@ struct App
     u32 shadingPassShaderID; 
     u32 lightsShaderID;
 	u32 reliefMapShaderID;
+	u32 blurShaderID;
 
     // texture indices
     u32 diceTexIdx;
@@ -192,6 +193,7 @@ struct App
     //FBO
     GBuffer gFbo;
     ShadingBuffer shadingFbo; 
+    PingPongBuffer blurFbo; 
 
     RenderTargetType displayedTexture = RenderTargetType::RENDER_TEXTURE;
 

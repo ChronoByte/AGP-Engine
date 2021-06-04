@@ -346,6 +346,7 @@ uniform sampler2D gAlbedoSpec;
 uniform sampler2D gDepth;
 
 layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec4 BrightColor;
 
 vec3 CalculateLighting(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos, vec3 pixelColor);
 
@@ -364,6 +365,12 @@ void main()
 		lighting += CalculateLighting(uLights[i], Normal, viewDir, FragPos, Diffuse);
 
     FragColor = vec4(lighting, 1.0);
+
+	float brightness = dot(FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    if(brightness > 1.0)
+        BrightColor = vec4(FragColor.rgb, 1.0);
+    else
+        BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
 }
 
 vec3 CalculateDirectionalLight(Light light, vec3 normal, vec3 view_dir, vec3 pixelColor)
@@ -627,6 +634,63 @@ vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
 
 #endif
 #endif
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// BLUR SHADER
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#ifdef BLUR_SHADER
+
+#if defined(VERTEX) ///////////////////////////////////////////////////
+
+layout(location = 0) in vec3 aPosition;
+layout (location = 2) in vec2 aTexCoords;
+
+out vec2 TexCoords; 
+
+void main()
+{
+    TexCoords = aTexCoords;
+	gl_Position = vec4(aPosition, 1.0);
+}
+
+#elif defined(FRAGMENT) ///////////////////////////////////////////////
+
+out vec4 FragColor;
+  
+in vec2 TexCoords;
+
+uniform sampler2D image;
+  
+uniform bool horizontal;
+uniform float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+
+void main()
+{             
+    vec2 tex_offset = 1.0 / textureSize(image, 0); // gets size of single texel
+    vec3 result = texture(image, TexCoords).rgb * weight[0]; // current fragment's contribution
+    if(horizontal)
+    {
+        for(int i = 1; i < 5; ++i)
+        {
+            result += texture(image, TexCoords + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+            result += texture(image, TexCoords - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+        }
+    }
+    else
+    {
+        for(int i = 1; i < 5; ++i)
+        {
+            result += texture(image, TexCoords + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+            result += texture(image, TexCoords - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+        }
+    }
+    FragColor = vec4(result, 1.0);
+}
+
+#endif
+#endif
+
 
 // NOTE: You can write several shaders in the same file if you want as
 // long as you embrace them within an #ifdef block (as you can see above).
