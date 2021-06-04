@@ -673,136 +673,79 @@ void Render(App* app)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, app->displaySize.x, app->displaySize.y);
 	glEnable(GL_DEPTH_TEST);
+	
+	app->gFbo.Bind();
 
-    switch (app->mode)
-    {
-		case Mode::Mode_TexturedQuad:
-        {
-                // TODO: Draw your textured quad here!
-                // - clear the framebuffer
-                // - set the viewport
-                // - set the blending state
-                // - bind the texture into unit 0
-                // - bind the program 
-                //   (...and make its texture sample from unit 0)
-                // - bind the vao
-                // - glDrawElements() !!!
+	// --------------------------------------- RELIEF MAPPING -------------------------------------
 
-				
-				Program& programTexturedGeometry = app->programs[app->texturedGeometryProgramIdx];
-				glUseProgram(programTexturedGeometry.handle);
-				glBindVertexArray(app->vao);
+	glm::vec3 light_test = glm::vec3(0.5f, 1.0f, 0.3f);
 
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	Program& reliefMapShading = app->programs[app->reliefMapShaderID];
+	glUseProgram(reliefMapShading.handle);
 
-				glUniform1i(app->programUniformTexture, 0);
-				glActiveTexture(GL_TEXTURE0);
-				GLuint textureHandle = app->textures[app->diceTexIdx].handle;
-				glBindTexture(GL_TEXTURE_2D, textureHandle);
+	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "projection"), 1, GL_FALSE, (GLfloat*)&app->camera.projectionMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "view"), 1, GL_FALSE, (GLfloat*)&app->camera.viewMatrix);
+	glm::mat4 modelMatrix = glm::mat4(1.0f);
+	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 10.0f, 0.0f));
+	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "model"), 1, GL_FALSE, (GLfloat*)&modelMatrix);
 
-				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+	glUniform3f(glGetUniformLocation(reliefMapShading.handle, "viewPos"), app->camera.position.x, app->camera.position.y, app->camera.position.z);
+	glUniform3f(glGetUniformLocation(reliefMapShading.handle, "lightPos"), light_test.x, light_test.y, light_test.z);
+	glUniform1f(glGetUniformLocation(reliefMapShading.handle, "heightScale"), app->heigth_scale);
 
-				glBindVertexArray(0);
-				glUseProgram(0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefDiffuseIdx].handle);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefNormalIdx].handle);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefHeightIdx].handle);
 
-        }
-        break;
+	renderQuadTangentSpace();
 
-		case Mode::Mode_Model:
-		{
-			
-			app->gFbo.Bind();
-			
-			
-			// Relief Mapping --------------------------------
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
-			glm::vec3 light_test = glm::vec3(0.5f, 1.0f, 0.3f);
+	glUseProgram(0);
 
-			Program& reliefMapShading = app->programs[app->reliefMapShaderID];
-			glUseProgram(reliefMapShading.handle);
+	// --------------------------------------- RENDERING ENTITIES -------------------------------------
 
-			glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "projection"), 1, GL_FALSE, (GLfloat*)&app->camera.projectionMatrix);
-			glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "view"), 1, GL_FALSE, (GLfloat*)&app->camera.viewMatrix);
-			glm::mat4 modelMatrix = glm::mat4(1.0f);
-			modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, 10.0f, 0.0f));
-			glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "model"), 1, GL_FALSE, (GLfloat*)&modelMatrix);
+	Program& texturedMeshProgram = app->programs[app->geometryPassShaderID];
+	glUseProgram(texturedMeshProgram.handle);
 
-			glUniform3f(glGetUniformLocation(reliefMapShading.handle, "viewPos"), app->camera.position.x, app->camera.position.y, app->camera.position.z);
-			glUniform3f(glGetUniformLocation(reliefMapShading.handle, "lightPos"), light_test.x, light_test.y, light_test.z);
-			glUniform1f(glGetUniformLocation(reliefMapShading.handle, "heightScale"), app->heigth_scale);
+	glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
+	
 
-
-			
-			
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefDiffuseIdx].handle);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefNormalIdx].handle);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefHeightIdx].handle);
-
-
-			renderQuadTangentSpace();
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_2D, 0);
-
-			glUseProgram(0);
-
-			// --------------------------------
-
-
-
-
-
-
-			Program& texturedMeshProgram = app->programs[app->geometryPassShaderID];
-			glUseProgram(texturedMeshProgram.handle);
-
-			glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
-			
-
-			for (int i = 0; i < app->entities.size(); ++i)
-			{
-				
-				Model& model = app->models[app->entities[i].modelIndex];
-				Mesh& mesh = app->meshes[model.meshIdx];
-				glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
-
-
-				for (u32 i = 0; i < mesh.submeshes.size(); ++i)
-				{
-					GLuint vao = FindVAO(mesh, i, texturedMeshProgram);
-					glBindVertexArray(vao);
-
-					u32 submeshMaterialIdx = model.materialIdx[i];
-					Material& submeshMaterial = app->materials[submeshMaterialIdx];
-
-					glActiveTexture(GL_TEXTURE0);
-					glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
-					glUniform1i(app->texturedMeshProgram_uTexture, 0);
-
-					Submesh& submesh = mesh.submeshes[i];
-					glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
-				}
-
-			}
+	for (int i = 0; i < app->entities.size(); ++i)
+	{
 		
-			app->gFbo.Unbind();
+		Model& model = app->models[app->entities[i].modelIndex];
+		Mesh& mesh = app->meshes[model.meshIdx];
+		glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
 
 
+		for (u32 i = 0; i < mesh.submeshes.size(); ++i)
+		{
+			GLuint vao = FindVAO(mesh, i, texturedMeshProgram);
+			glBindVertexArray(vao);
+
+			u32 submeshMaterialIdx = model.materialIdx[i];
+			Material& submeshMaterial = app->materials[submeshMaterialIdx];
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
+			glUniform1i(app->texturedMeshProgram_uTexture, 0);
+
+			Submesh& submesh = mesh.submeshes[i];
+			glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
 		}
-		break;
-       
-		default:
-			break;
 
 	}
+	
+	app->gFbo.Unbind();
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindVertexArray(0);
@@ -911,9 +854,6 @@ void Render(App* app)
 	
 	Program& blurShader = app->programs[app->blurShaderID];
 	app->blurFbo.BlurImage(10, app->shadingFbo.GetTexture(BRIGHT_COLOR_TEXTURE), blurShader, renderQuad);
-
-	// -------------------------------------------------------------------------------------------------
-
 
 	// --------------------------------------- RENDER SCREEN QUAD -------------------------------------
 

@@ -320,7 +320,7 @@ void PingPongBuffer::BlurImage(int iterations, u32 colorTexture, Program shaderB
 		glUniform1f(glGetUniformLocation(shaderBlur.handle, "horizontal"), horizontal);		
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, first_iteration ? colorTexture : pingPongTextures[!horizontal]);
-		(*f)(); // RENDER QUAD FUNCTION
+		(*f)(); // RENDER QUAD FUNCTION 
 		horizontal = !horizontal;
 		if (first_iteration)
 			first_iteration = false;
