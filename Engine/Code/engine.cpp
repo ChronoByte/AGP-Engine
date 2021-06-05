@@ -500,6 +500,7 @@ void Gui(App* app)
 	if (ImGui::BeginMenu("App"))
 	{
 		if (ImGui::MenuItem("OpenGL info")) { app->show_opengl_info = true; }
+		if (ImGui::MenuItem("Effects")) { app->show_effects = true; }
 
 		ImGui::EndMenu();
 	}
@@ -550,12 +551,7 @@ void Gui(App* app)
 			app->displayedTexture = (RenderTargetType)item_current;
 		}
 
-		ImGui::Separator();
-		ImGui::Text("Bloom");
-		ImGui::Checkbox("Bloom", &app->using_bloom);
-		ImGui::DragInt("Blur Iterations", &app->blurIterations, 2.0f, 0, 50);
-		ImGui::DragFloat("Threshold", &app->bright_threshold, 0.05f, 0.0f, 20.f);
-
+	
 		// Light information -------------------
 		ImGui::Separator();
 		ImGui::Text("Lights");
@@ -604,6 +600,30 @@ void Gui(App* app)
 
 	ImGui::End();
 
+	}
+	if (app->show_effects)
+	{
+		ImGui::Begin("Effects", &app->show_effects);
+
+		
+		ImGui::Text("Relief Mapping");
+		ImGui::Spacing();
+		ImGui::Checkbox("Clip borders", &app->clip_borders);
+		ImGui::SliderFloat("Height Scale", &app->heigth_scale, 0.0f, 1.f);
+		ImGui::SliderInt("Min layers", &app->min_layers, 0.0f, 100.f);
+		ImGui::SliderInt("Max layers", &app->max_layers, 0.0f, 100.f);
+		ImGui::Separator();
+
+		
+		ImGui::Text("Bloom");
+		ImGui::Spacing();
+		ImGui::Checkbox("Bloom", &app->using_bloom);
+		ImGui::DragInt("Blur Iterations", &app->blurIterations, 2.0f, 0, 50);
+		ImGui::DragFloat("Threshold", &app->bright_threshold, 0.05f, 0.0f, 20.f);
+
+
+
+		ImGui::End();
 	}
 }
 
@@ -706,6 +726,9 @@ void Render(App* app)
 	glUniform3f(glGetUniformLocation(reliefMapShading.handle, "viewPos"), app->camera.position.x, app->camera.position.y, app->camera.position.z);
 	glUniform3f(glGetUniformLocation(reliefMapShading.handle, "lightPos"), light_test.x, light_test.y, light_test.z);
 	glUniform1f(glGetUniformLocation(reliefMapShading.handle, "heightScale"), app->heigth_scale);
+	glUniform1i(glGetUniformLocation(reliefMapShading.handle, "clipBorders"), app->clip_borders);
+	glUniform1i(glGetUniformLocation(reliefMapShading.handle, "minLayers"), app->min_layers);
+	glUniform1i(glGetUniformLocation(reliefMapShading.handle, "maxLayers"), app->max_layers);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefDiffuseIdx].handle);

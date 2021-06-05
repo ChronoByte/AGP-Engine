@@ -550,15 +550,21 @@ uniform sampler2D diffuseMap;
 uniform sampler2D normalMap;
 uniform sampler2D depthMap;
 uniform float heightScale;
+uniform bool clipBorders;
+uniform int minLayers;
+uniform int maxLayers;
 
 layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec3 gPosition;
 layout(location = 2) out vec3 gNormal;
 layout(location = 3) out vec3 gAlbedoSpec;
-//layout(location = 4) out vec4 gDepth;
+layout(location = 4) out vec4 gDepth;
 
+float near = 0.1;
+float far = 100.0;
 
 vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir);
+float LinearizeDepth(float depth);
 
 void main()
 {
@@ -567,9 +573,12 @@ void main()
 	vec2 texCoords = fs_in.TexCoords;
 
 	texCoords = ParallaxMapping(fs_in.TexCoords, viewDir);
-	if (texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0.0)
-		discard;
 
+	if (clipBorders)
+	{
+		if (texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0.0)
+			discard;
+	}
 	// obtain normal from normal map
 	vec3 normal = texture(normalMap, texCoords).rgb;
 	normal = normalize(normal * 2.0 - 1.0);
@@ -593,20 +602,24 @@ void main()
 	gPosition = fs_in.FragPos;
 	gNormal = normal;
 	gAlbedoSpec.rgb = texture(diffuseMap, texCoords).rgb;
+	float depth = LinearizeDepth(gl_FragCoord.z) / far; // divide by far for demonstration
+	gDepth = vec4(vec3(depth), 1.0);
 	FragColor = vec4(ambient + diffuse + specular, 1.0);
+}
 
-	//float depth = LinearizeDepth(gl_FragCoord.z) / far; // divide by far for demonstration
-	//gDepth = vec4(vec3(depth), 1.0);
-	//FragColor = texture(uTexture, vTexCoord);
-
-	//FragColor = vec4(ambient + diffuse + specular, 1.0);
+float LinearizeDepth(float depth)
+{
+	float z = depth * 2.0 - 1.0; // back to NDC 
+	return (2.0 * near * far) / (far + near - z * (far - near));
 }
 
 vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
 {
 	// number of depth layers
-	const float minLayers = 8;
-	const float maxLayers = 32;
+	//const float minLayers = 8;
+	//const float maxLayers = 32;
+
+
 	float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDir)));
 	// calculate the size of each layer
 	float layerDepth = 1.0 / numLayers;

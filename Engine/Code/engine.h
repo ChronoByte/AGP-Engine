@@ -119,6 +119,7 @@ struct App
 	// OpenGL info
 	GLInfo info;
 	bool show_opengl_info = true;
+	bool show_effects = true;
 
     // Embedded geometry (in-editor simple meshes such as
     // a screen filling quad, a cube, a sphere...)
@@ -198,6 +199,10 @@ struct App
 
 	//Relief Mapping 
 	float heigth_scale = 0.1f;
+	bool clip_borders = false;
+	int min_layers = 8;
+	int max_layers = 32;
+
 	u32 reliefDiffuseIdx;
 	u32 reliefNormalIdx;
 	u32 reliefHeightIdx;
