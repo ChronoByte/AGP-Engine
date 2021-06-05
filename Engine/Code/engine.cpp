@@ -552,7 +552,7 @@ void Gui(App* app)
 		ImGui::Text("Bloom");
 		ImGui::Checkbox("Bloom", &app->using_bloom);
 		ImGui::DragInt("Blur Iterations", &app->blurIterations, 2.0f, 0, 50);
-		//ImGui::DragFloat("Threshold", &app->bright_threshold, 0.05f, 0.0f, 20.f);
+		ImGui::DragFloat("Threshold", &app->bright_threshold, 0.05f, 0.0f, 20.f);
 
 		// Light information -------------------
 		ImGui::Separator();
@@ -790,7 +790,7 @@ void Render(App* app)
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, app->gFbo.GetTexture(DEPTH_TEXTURE));
 
-	glUniform1i(glGetUniformLocation(shaderPassProgram.handle, "bright_color_threshold"), app->bright_threshold);
+	glUniform1f(glGetUniformLocation(shaderPassProgram.handle, "bright_color_threshold"), app->bright_threshold);
 
 
 	renderQuad();
