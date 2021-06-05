@@ -361,6 +361,8 @@ void Init(App* app)
 	
 	app->camera.aspect_ratio = (float)app->displaySize.x / (float)app->displaySize.y;
 	app->camera.projectionMatrix = glm::perspective(glm::radians(app->camera.vertical_fov), app->camera.aspect_ratio, app->camera.nearPlane, app->camera.farPlane);
+	app->camera.viewMatrix = app->camera.CalculateCameraRotation(app);
+
 	//app->camera.viewMatrix = glm::lookAt(app->camera.position, app->camera.target, glm::vec3(0, 1, 0));
 	
 

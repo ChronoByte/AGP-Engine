@@ -12,7 +12,7 @@ struct Camera
 
 	glm::vec3 position;
 	glm::vec3 target; //deprecated
-
+	glm::vec3 pivot = { 0.0f, 0.0f, 0.0f };
 	
 	glm::vec3 orientation;
 	glm::vec3 camRight;
@@ -32,6 +32,8 @@ struct Camera
 	glm::mat4 projectionMatrix;
 
 	void Update(App* app);
-	glm::mat4 CalculateCameraRotation();
+	glm::mat4 CalculateCameraRotation(App* app);
+
+	bool isOrbit = false;
 	
 };
