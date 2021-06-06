@@ -19,6 +19,28 @@ Made by Carlos Peña and Sebastià Lopez.
    * **WASD:** Move camera Forward-Left-Backward-Right.
    * **QE:** Move camera Up-Down.
    * **Left Click (hold):** Rotate camera.
+   * **Right Click (hold)** Orbit camera.
+
+### Rendering configuration
+
+  * Enable/Disable deferred shading
+      * gPosition target
+      * gNormals target
+      * gAlbedo target
+      * gDepth target
+      * Bright Color texture
+      * Blurred Bloom texture
+  * Enable/Disable forward shading
+  * Modify Relief Mapping parameters
+      * Clip edges
+      * Rotate quad
+      * Heigh scale
+      * Min layers /Max layers
+      * Swap texture examples
+  * Modify Bloom parameters
+      * Enable/Disable bloom
+      * Blur iterations
+      * Threshold
   
 ## Members
 
