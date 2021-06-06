@@ -821,8 +821,6 @@ void RenderUsingDeferredPipeline(App* app)
 
 	app->shadingFbo.Bind();
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	Program& shaderPassProgram = app->programs[app->shadingPassShaderID];
 	glUseProgram(shaderPassProgram.handle);
 
