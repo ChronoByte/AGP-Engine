@@ -209,8 +209,9 @@ struct App
 	bool clip_borders = false;
 	int min_layers = 8;
 	int max_layers = 32;
-	int reliefIdx = 0;
+	int reliefIdx = 1;
 	std::vector<int> reliefTextures;
+	bool rotate = false;
 
 	u32 reliefDiffuseIdx;
 	u32 reliefNormalIdx;

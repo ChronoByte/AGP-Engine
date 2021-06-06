@@ -477,13 +477,21 @@ void Init(App* app)
 	}
 
 	//Relief Textures
-	app->reliefDiffuseIdx = LoadTexture2D(app, "Relief/bricks2.jpg");
-	app->reliefNormalIdx = LoadTexture2D(app, "Relief/bricks2_normal.jpg");
-	app->reliefHeightIdx = LoadTexture2D(app, "Relief/bricks2_disp.jpg");
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/bricks2.jpg"));
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/bricks2_normal.jpg"));
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/bricks2_disp.jpg"));
 
-	app->relief2DiffuseIdx = LoadTexture2D(app, "Relief/LeatherPadded_03_BC.png");
-	app->relief2NormalIdx = LoadTexture2D(app, "Relief/LeatherPadded_03_NOpenGL.png");
-	app->relief2HeightIdx = LoadTexture2D(app, "Relief/LeatherPadded_03_H.png");
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/LeatherPadded_03_BC.png"));
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/LeatherPadded_03_NOpenGL.png"));
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/LeatherPadded_03_H.png"));
+
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/BrokenTiles_01_BC.png"));
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/BrokenTiles_01_NOpenGL.png"));
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/BrokenTiles_01_H.png"));
+
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/Wood_Base.png"));
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/Wood_Normal.png"));
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/Wood_Height.png"));
 	
 
 	glUseProgram(reliefMapShader.handle);
@@ -642,10 +650,11 @@ void Gui(App* app)
 		ImGui::Text("Relief Mapping");
 		ImGui::Spacing();
 		ImGui::Checkbox("Clip borders", &app->clip_borders);
+		ImGui::Checkbox("Rotate", &app->rotate);
 		ImGui::SliderFloat("Height Scale", &app->heigth_scale, 0.0f, 1.f);
 		ImGui::SliderInt("Min layers", &app->min_layers, 0.0f, 100.f);
 		ImGui::SliderInt("Max layers", &app->max_layers, 0.0f, 100.f);
-		ImGui::SliderInt("Textures", &app->reliefIdx, 0.0f, 1.f);
+		ImGui::SliderInt("Textures", &app->reliefIdx, 1.0f, 4.f);
 		ImGui::Separator();
 
 		
@@ -790,7 +799,16 @@ void RenderUsingDeferredPipeline(App* app)
 
 	glm::mat4 modelMatrix = glm::mat4(1.0f);
 	modelMatrix = TransformPositionScale(vec3(0.f, 25.0f, 0.f), vec3(15.0f));
-	modelMatrix = TransformRotation(modelMatrix, app->ReliefAngles[0] += app->ReliefRotationRate[0] * app->deltaTime * 5.0f, glm::vec3(1.0f, 0.50f, 0.70f));
+	if (app->rotate)
+	{
+		modelMatrix = TransformRotation(modelMatrix, app->ReliefAngles[0] += app->ReliefRotationRate[0] * app->deltaTime * 5.0f, glm::vec3(1.0f, 0.50f, 0.70f));
+	}
+	else
+	{
+		modelMatrix = glm::mat4(1.0f);
+		modelMatrix = TransformPositionScale(vec3(0.f, 25.0f, 0.f), vec3(15.0f));
+	}
+
 	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "model"), 1, GL_FALSE, (GLfloat*)&modelMatrix);
 	renderQuadTangentSpace();
 
@@ -1080,22 +1098,40 @@ void BindReliefTextures(int reliefIndex, App* app)
 
 	switch (reliefIndex)
 	{
-	case 0:
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefDiffuseIdx].handle);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefNormalIdx].handle);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefHeightIdx].handle);
-
-		break;
 	case 1:
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, app->textures[app->relief2DiffuseIdx].handle);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[0]].handle);
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, app->textures[app->relief2NormalIdx].handle);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[1]].handle);
 		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, app->textures[app->relief2HeightIdx].handle);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[2]].handle);
+
+		break;
+	case 2:
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[3]].handle);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[4]].handle);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[5]].handle);
+
+		break;
+	case 3:
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[6]].handle);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[7]].handle);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[8]].handle);
+
+		break;
+	case 4:
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[9]].handle);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[10]].handle);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[11]].handle);
 
 		break;
 
