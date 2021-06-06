@@ -14,6 +14,7 @@
 #include "Camera.h"
 #include "FrameBufferObject.h"
 
+
 #define BINDING(b) b
 
 typedef glm::vec2  vec2;
@@ -212,6 +213,11 @@ struct App
 	u32 reliefDiffuseIdx;
 	u32 reliefNormalIdx;
 	u32 reliefHeightIdx;
+
+	std::vector<float> ReliefAngles;
+	std::vector<float> ReliefRotationRate;
+	std::vector<glm::vec3> ReliefPositions;
+
 
     // Bloom
     bool using_bloom = true;
