@@ -14,6 +14,7 @@
 #include "Camera.h"
 #include "FrameBufferObject.h"
 
+
 #define BINDING(b) b
 
 typedef glm::vec2  vec2;
@@ -208,10 +209,22 @@ struct App
 	bool clip_borders = false;
 	int min_layers = 8;
 	int max_layers = 32;
+	int reliefIdx = 1;
+	std::vector<int> reliefTextures;
+	bool rotate = false;
 
 	u32 reliefDiffuseIdx;
 	u32 reliefNormalIdx;
 	u32 reliefHeightIdx;
+
+	u32 relief2DiffuseIdx;
+	u32 relief2NormalIdx;
+	u32 relief2HeightIdx;
+
+	std::vector<float> ReliefAngles;
+	std::vector<float> ReliefRotationRate;
+	std::vector<glm::vec3> ReliefPositions;
+
 
     // Bloom
     bool using_bloom = true;
