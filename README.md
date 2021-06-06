@@ -16,7 +16,7 @@ Made by Carlos Peña and Sebastià Lopez.
 ### Relief Mapping
 
 <p align="center">
-<img src="https://github.com/ChronoByte/AGP-Engine/blob/main/Doc/agp1.PNG" >
+<img src="https://github.com/ChronoByte/AGP-Engine/blob/main/Doc/agp8.PNG" >
 </p>
 <p align="center">
 <img src="https://github.com/ChronoByte/AGP-Engine/blob/main/Doc/agp3.PNG" >
