@@ -781,41 +781,11 @@ void RenderUsingDeferredPipeline(App* app)
 
 	// --------------------------------------- RENDERING ENTITIES -------------------------------------
 
-	Program& texturedMeshProgram = app->programs[app->geometryPassShaderID];
-	glUseProgram(texturedMeshProgram.handle);
+	app->gFbo.Bind();
 
-	glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
-
-	for (int i = 0; i < app->entities.size(); ++i)
-	{
-		Model& model = app->models[app->entities[i].modelIndex];
-		Mesh& mesh = app->meshes[model.meshIdx];
-		glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
-
-
-		for (u32 i = 0; i < mesh.submeshes.size(); ++i)
-		{
-			GLuint vao = FindVAO(mesh, i, texturedMeshProgram);
-			glBindVertexArray(vao);
-
-			u32 submeshMaterialIdx = model.materialIdx[i];
-			Material& submeshMaterial = app->materials[submeshMaterialIdx];
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
-			glUniform1i(app->texturedMeshProgram_uTexture, 0);
-
-			Submesh& submesh = mesh.submeshes[i];
-			glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
-		}
-	}
+	RenderEntities(app, app->programs[app->geometryPassShaderID]);
 
 	app->gFbo.Unbind();
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindVertexArray(0);
-	glUseProgram(0);
-
 
 	// --------------------------------------- SHADING PASS -------------------------------------
 
@@ -876,7 +846,91 @@ void RenderUsingDeferredPipeline(App* app)
 
 	app->shadingFbo.Bind(false);
 
-	Program& lightsShader = app->programs[app->lightsShaderID];
+	RenderLights(app, app->programs[app->lightsShaderID]);
+
+	app->shadingFbo.Unbind();
+
+	// --------------------------------------- BLOOM PASS -------------------------------------
+
+	Program& blurShader = app->programs[app->blurShaderID];
+	app->blurFbo.BlurImage(app->blurIterations, app->shadingFbo.GetTexture(BRIGHT_COLOR_TEXTURE), blurShader, renderQuad);
+
+	// --------------------------------------- RENDER SCREEN QUAD -------------------------------------
+
+	FinalRenderPass(app);
+
+	// -------------------------------------------------------------------------------------------------
+}
+
+
+void RenderUsingForwardPipeline(App* app)
+{
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, app->displaySize.x, app->displaySize.y);
+	glEnable(GL_DEPTH_TEST);
+
+	// ------------------------ ENTITIES -------------------------------------
+
+	app->shadingFbo.Bind();
+	RenderEntities(app, app->programs[app->texturedMeshProgramIdx]);
+	app->shadingFbo.Unbind();
+
+	// ------------------------ LIGHTS -------------------------------------
+
+	app->shadingFbo.Bind(false);
+	RenderLights(app, app->programs[app->lightsShaderID]);
+	app->shadingFbo.Unbind();
+
+	// ------------------------ BLOOM PASS -------------------------------------
+
+	Program& blurShader = app->programs[app->blurShaderID];
+	app->blurFbo.BlurImage(app->blurIterations, app->shadingFbo.GetTexture(BRIGHT_COLOR_TEXTURE), blurShader, renderQuad);
+
+	// ------------------------ FINAL PASS -------------------------------------
+
+	FinalRenderPass(app);
+}
+
+void RenderEntities(App* app, const Program& program)
+{
+	Program renderMeshShader = program;
+	glUseProgram(renderMeshShader.handle);
+
+	glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
+
+	for (int i = 0; i < app->entities.size(); ++i)
+	{
+		Model& model = app->models[app->entities[i].modelIndex];
+		Mesh& mesh = app->meshes[model.meshIdx];
+		glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
+
+
+		for (u32 i = 0; i < mesh.submeshes.size(); ++i)
+		{
+			GLuint vao = FindVAO(mesh, i, renderMeshShader);
+			glBindVertexArray(vao);
+
+			u32 submeshMaterialIdx = model.materialIdx[i];
+			Material& submeshMaterial = app->materials[submeshMaterialIdx];
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, app->textures[submeshMaterial.albedoTextureIdx].handle);
+			glUniform1i(app->texturedMeshProgram_uTexture, 0);
+
+			Submesh& submesh = mesh.submeshes[i];
+			glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
+		}
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
+	glUseProgram(0);
+}
+
+void RenderLights(App* app, const Program& shader)
+{
+	Program lightsShader = shader;
 	glUseProgram(lightsShader.handle);
 
 	for (u32 i = 0; i < app->lights.size(); ++i)
@@ -915,16 +969,10 @@ void RenderUsingDeferredPipeline(App* app)
 		glDrawElements(GL_TRIANGLES, mesh.submeshes[0].indices.size(), GL_UNSIGNED_INT, (void*)(u64)mesh.submeshes[0].indexOffset);
 
 	}
+}
 
-	app->shadingFbo.Unbind();
-
-	// --------------------------------------- BLOOM PASS -------------------------------------
-
-	Program& blurShader = app->programs[app->blurShaderID];
-	app->blurFbo.BlurImage(app->blurIterations, app->shadingFbo.GetTexture(BRIGHT_COLOR_TEXTURE), blurShader, renderQuad);
-
-	// --------------------------------------- RENDER SCREEN QUAD -------------------------------------
-
+void FinalRenderPass(App* app)
+{
 	Program& finalPassShader = app->programs[app->finalPassShaderIdx];
 	glUseProgram(finalPassShader.handle);
 
@@ -942,19 +990,9 @@ void RenderUsingDeferredPipeline(App* app)
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
-
-	// -------------------------------------------------------------------------------------------------
 }
 
-void RenderUsingForwardPipeline(App* app)
-{
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, app->displaySize.x, app->displaySize.y);
-	glEnable(GL_DEPTH_TEST);
 
-
-}
 
 
 unsigned int quadVAO2 = 0;

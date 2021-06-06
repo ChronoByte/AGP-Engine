@@ -112,6 +112,8 @@ in vec3 vNormal; // in worldspace
 in vec3 viewDir; 
 
 uniform sampler2D uTexture;
+uniform float bright_color_threshold; 
+vec3 lightThreshold = vec3(0.2126, 0.7152, 0.0722);
 
 struct Light {
 	unsigned int type; 
@@ -130,6 +132,7 @@ layout(binding = 0, std140) uniform GlobalParams
 
 
 layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec4 BrightColor;
 
 vec3 CalculateLighting(Light light, vec3 normal, vec3 viewDir, vec3 frag_pos);
 
@@ -141,20 +144,27 @@ void main()
 		lightColorInfluence += CalculateLighting(uLights[i], vNormal, viewDir, vPosition);
 
 	FragColor = texture(uTexture, vTexCoord) * vec4(lightColorInfluence, 1.0);
+
+	float brightness = dot(FragColor.rgb, lightThreshold) * bright_color_threshold;
+    if(brightness > 1.0)
+        BrightColor = vec4(FragColor.rgb, 1.0);
+    else
+        BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
 }
 
 vec3 CalculateDirectionalLight(Light light, vec3 normal, vec3 view_dir)
 {
+	float intensity = float(light.intensity);
+	intensity *= 0.01;
 	// Diffuse 
 	vec3 lightDirection = normalize(-light.direction);
 	float diff = max(dot(lightDirection, normal), 0.0);
-	vec3 diffuse = light.color * diff;
+	vec3 diffuse = light.color * diff *  intensity;
 
 	// Specular
-	// vec3 halfwayDir = normalize(lightDirection + view_dir);
-	// float spec = pow(max(dot(normal, halfwayDir), 0.0), 16);
-	// vec3 specular = light.color * spec;
-	vec3 specular = vec3(0.0);
+	vec3 halfwayDir = normalize(lightDirection + view_dir);
+	float spec = pow(max(dot(normal, halfwayDir), 0.0), 128.0);
+	vec3 specular = light.color * spec * intensity;
 
 	vec3 result = (diffuse + specular);
 	return result;
@@ -162,20 +172,26 @@ vec3 CalculateDirectionalLight(Light light, vec3 normal, vec3 view_dir)
 
 vec3 CalculatePointLight(Light light, vec3 normal, vec3 view_dir, vec3 frag_pos)
 {
+
+	float intensity = float(light.intensity);
+	intensity *= 0.01;
+
 	// Diffuse 
 	vec3 lightDirection = normalize(light.position - frag_pos);
 	float diff = max(dot(normal, lightDirection), 0.0);
-	vec3 diffuse = light.color * diff;
+	vec3 diffuse = light.color * diff * intensity;
 
 	// Specular
-	// vec3 reflectDir = reflect(-lightDir, normal);  
-    // float spec = pow(max(dot(view_dir, reflectDir), 0.0), objectMaterial.smoothness) * objectMaterial.metalness;
-	// vec3 specular = light.color * spec;
-	vec3 specular = vec3(0.0);
+    vec3 halfwayDir = normalize(lightDirection + view_dir);  
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), 128.0);
+	vec3 specular = light.color * spec * intensity;
 
 	// Attenuation
  	float distance = length(light.position - frag_pos);
-    float attenuation = 1.0 / (1.0 + 0.5 * distance + 1.0 * (distance * distance));    
+    float attenuation = 1.0 / (1.0 + 0.3 * distance + 0.5 * (distance * distance));    
+
+	diffuse *= attenuation;
+    specular *= attenuation;
 
 	vec3 result = (diffuse + specular);
 	return result;

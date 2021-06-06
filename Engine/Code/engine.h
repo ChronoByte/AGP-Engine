@@ -234,6 +234,11 @@ void Render(App* app);
 void RenderUsingDeferredPipeline(App* app);
 void RenderUsingForwardPipeline(App* app);
 
+void RenderEntities(App* app, const Program& shader);
+void RenderLights(App* app, const Program& shader);
+void FinalRenderPass(App* app);
+
+
 u32 LoadTexture2D(App* app, const char* filepath);
 
 GLuint FindVAO(Mesh& mesh, u32 submeshIndex, const Program& program);
