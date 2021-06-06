@@ -30,8 +30,16 @@ Made by Carlos Peña and Sebastià Lopez.
 
 ### Multipass Bloom
 
+#### Without Bloom
+<p align="center">
+<img src="https://github.com/ChronoByte/AGP-Engine/blob/main/Doc/agp7.PNG" >
+</p>
 
-**GitHub repository:** [https://github.com/ChronoByte/AGP-Engine](https://github.com/ChronoByte/AGP-Engine)
+#### With Bloom
+<p align="center">
+<img src="https://github.com/ChronoByte/AGP-Engine/blob/main/Doc/agp6.PNG" >
+</p>
+
 
 
 ## Controls
@@ -53,6 +61,10 @@ Made by Carlos Peña and Sebastià Lopez.
       * Bright Color texture
       * Blurred Bloom texture
   * Enable/Disable forward shading
+  * Modify light parameters
+
+### Effects configuration
+
   * Modify Relief Mapping parameters
       * Clip edges
       * Rotate quad
@@ -66,6 +78,12 @@ Made by Carlos Peña and Sebastià Lopez.
   
 ## Shader files
 * Relief Mapping & Bloom [shaders.glsl](https://github.com/ChronoByte/AGP-Engine/blob/main/Engine/WorkingDir/shaders.glsl)
+
+## Source Code
+**GitHub repository:** [https://github.com/ChronoByte/AGP-Engine](https://github.com/ChronoByte/AGP-Engine)
+
+## Disclaimer
+As you will notice, some of the heightmap textures are inverted so you must rotate around the relief mapping quad in order to see the proper render of relief mapping technique
 
 ## Members
 
