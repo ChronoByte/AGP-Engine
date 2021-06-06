@@ -64,6 +64,12 @@ enum Mode
     Mode_FBO
 };
 
+enum class RenderPipeline
+{
+    FORWARD,
+    DEFERRED
+};
+
 enum FBO_TextureDisplay
 {
     Final_Render,
@@ -208,9 +214,12 @@ struct App
 	u32 reliefHeightIdx;
 
     // Bloom
-    bool using_bloom = false;
+    bool using_bloom = true;
     int blurIterations = 10;
     float bright_threshold = 1;
+
+    // Render Pipeline
+    RenderPipeline render_pipeline = RenderPipeline::DEFERRED;
 };
 
 
@@ -221,6 +230,9 @@ void Gui(App* app);
 void Update(App* app);
 
 void Render(App* app);
+
+void RenderUsingDeferredPipeline(App* app);
+void RenderUsingForwardPipeline(App* app);
 
 u32 LoadTexture2D(App* app, const char* filepath);
 

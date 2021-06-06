@@ -541,6 +541,17 @@ void Gui(App* app)
 		ImGui::DragFloat("Roll", &app->camera.roll);
 		ImGui::PopItemWidth();
 
+		// Render Pipeline information -------------------
+
+		ImGui::Separator();
+		ImGui::Text("Render Pipeline");
+		const char* items_pipeline_list[] = { "Forward Shading", "Deferred Shading" };
+		static int item_pipeline = (int)app->render_pipeline;
+		if (ImGui::Combo("Render Pipeline", &item_pipeline, items_pipeline_list, IM_ARRAYSIZE(items_pipeline_list)))
+		{
+			app->render_pipeline = (RenderPipeline)item_pipeline;
+		}
+
 		// Render target information -------------------
 		ImGui::Separator();
 		ImGui::Text("Render Targets");
@@ -550,6 +561,8 @@ void Gui(App* app)
 		{
 			app->displayedTexture = (RenderTargetType)item_current;
 		}
+
+		
 
 	
 		// Light information -------------------
@@ -692,7 +705,25 @@ void renderQuad();
 void renderQuadTangentSpace();
 u32 GetFinalTextureToRender(App* app);
 
+
+
 void Render(App* app)
+{
+	switch (app->render_pipeline)
+	{
+		case RenderPipeline::DEFERRED:
+			RenderUsingDeferredPipeline(app);
+			break;
+		case RenderPipeline::FORWARD:
+			RenderUsingForwardPipeline(app);
+			break;
+		default:
+			break;
+	}
+
+}
+
+void RenderUsingDeferredPipeline(App* app)
 {
 	// Clear the screen (also ImGui...)
 	glActiveTexture(GL_TEXTURE0);
@@ -707,7 +738,7 @@ void Render(App* app)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, app->displaySize.x, app->displaySize.y);
 	glEnable(GL_DEPTH_TEST);
-	
+
 	app->gFbo.Bind();
 
 	// --------------------------------------- RELIEF MAPPING -------------------------------------
@@ -754,11 +785,9 @@ void Render(App* app)
 	glUseProgram(texturedMeshProgram.handle);
 
 	glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
-	
 
 	for (int i = 0; i < app->entities.size(); ++i)
 	{
-		
 		Model& model = app->models[app->entities[i].modelIndex];
 		Mesh& mesh = app->meshes[model.meshIdx];
 		glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(1), app->ubuffer.handle, app->entities[i].localParamsOffset, app->entities[i].localParamsSize);
@@ -779,16 +808,15 @@ void Render(App* app)
 			Submesh& submesh = mesh.submeshes[i];
 			glDrawElements(GL_TRIANGLES, submesh.indices.size(), GL_UNSIGNED_INT, (void*)(u64)submesh.indexOffset);
 		}
-
 	}
-	
+
 	app->gFbo.Unbind();
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
 
-	
+
 	// --------------------------------------- SHADING PASS -------------------------------------
 
 	glDisable(GL_DEPTH_TEST);
@@ -891,7 +919,7 @@ void Render(App* app)
 	app->shadingFbo.Unbind();
 
 	// --------------------------------------- BLOOM PASS -------------------------------------
-	
+
 	Program& blurShader = app->programs[app->blurShaderID];
 	app->blurFbo.BlurImage(app->blurIterations, app->shadingFbo.GetTexture(BRIGHT_COLOR_TEXTURE), blurShader, renderQuad);
 
@@ -903,7 +931,7 @@ void Render(App* app)
 	glUniform1i(glGetUniformLocation(finalPassShader.handle, "using_bloom"), app->using_bloom);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, GetFinalTextureToRender(app));
-	
+
 	if (app->using_bloom && app->displayedTexture == RENDER_TEXTURE)
 	{
 		glActiveTexture(GL_TEXTURE1);
@@ -916,8 +944,19 @@ void Render(App* app)
 	glUseProgram(0);
 
 	// -------------------------------------------------------------------------------------------------
-	
 }
+
+void RenderUsingForwardPipeline(App* app)
+{
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, app->displaySize.x, app->displaySize.y);
+	glEnable(GL_DEPTH_TEST);
+
+
+}
+
+
 unsigned int quadVAO2 = 0;
 unsigned int quadVBO2;
 void renderQuadTangentSpace()
