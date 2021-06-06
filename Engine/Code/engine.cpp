@@ -503,6 +503,35 @@ void Init(App* app)
 	glUniform1i(glGetUniformLocation(reliefMapShader.handle, "normalMap"), 1);
 	glUniform1i(glGetUniformLocation(reliefMapShader.handle, "depthMap"), 2);
 
+	//Shader
+	app->reliefMapShaderForwardID = LoadProgram(app, "shaders.glsl", "RELIEF_MAPPING_SHADER_FORWARD");
+	Program& reliefMapShaderForward = app->programs[app->reliefMapShaderForwardID];
+
+
+	// Attributes Program ----------
+	{
+		int attributeCount;
+		glGetProgramiv(reliefMapShaderForward.handle, GL_ACTIVE_ATTRIBUTES, &attributeCount);
+
+		GLchar attributeName[64];
+		GLsizei attributeNameLength;
+		GLint attributeSize;
+		GLenum attributeType;
+
+		for (int i = 0; i < attributeCount; ++i)
+		{
+			glGetActiveAttrib(reliefMapShaderForward.handle, i, 64, &attributeNameLength, &attributeSize, &attributeType, attributeName);
+
+			GLint attributeLocation = glGetAttribLocation(reliefMapShaderForward.handle, attributeName);
+			reliefMapShaderForward.vertexInputLayout.attributes.push_back({ (u8)attributeLocation,(u8)attributeSize });
+		}
+	}
+
+	glUseProgram(reliefMapShaderForward.handle);
+	glUniform1i(glGetUniformLocation(reliefMapShaderForward.handle, "diffuseMap"), 0);
+	glUniform1i(glGetUniformLocation(reliefMapShaderForward.handle, "normalMap"), 1);
+	glUniform1i(glGetUniformLocation(reliefMapShaderForward.handle, "depthMap"), 2);
+	glUseProgram(0);
 
 	srand(20);
 	const int RELIEFS = 3;
@@ -778,7 +807,7 @@ void RenderUsingDeferredPipeline(App* app)
 	app->gFbo.Bind();
 
 	// --------------------------------------- RELIEF MAPPING -------------------------------------
-	RenderReliefMapping(app, app->programs[app->reliefMapShaderID]);
+	RenderReliefMapping(app, app->programs[app->reliefMapShaderID], true);
 	
 	// --------------------------------------- RENDERING ENTITIES -------------------------------------
 	RenderEntities(app, app->programs[app->geometryPassShaderID]);
@@ -871,6 +900,7 @@ void RenderUsingForwardPipeline(App* app)
 	// ------------------------ ENTITIES -------------------------------------
 
 	app->shadingFbo.Bind();
+	RenderReliefMapping(app, app->programs[app->reliefMapShaderForwardID], false);
 	RenderEntities(app, app->programs[app->texturedMeshProgramIdx]);
 	app->shadingFbo.Unbind();
 
@@ -890,16 +920,19 @@ void RenderUsingForwardPipeline(App* app)
 	FinalRenderPass(app);
 }
 
-void RenderReliefMapping(App* app, const Program& program)
+void RenderReliefMapping(App* app, const Program& program, bool deferred_rendering)
 {
 
-	Program& reliefMapShading = app->programs[app->reliefMapShaderID];
+	Program reliefMapShading = program;
 	glUseProgram(reliefMapShading.handle);
 
 	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "projection"), 1, GL_FALSE, (GLfloat*)&app->camera.projectionMatrix);
 	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "view"), 1, GL_FALSE, (GLfloat*)&app->camera.viewMatrix);
 
-
+	if (deferred_rendering)
+	{
+		glBindBufferRange(GL_UNIFORM_BUFFER, BINDING(0), app->gpBuffer.handle, app->globalParamsOffset, app->globalParamsSize);
+	}
 
 	glUniform3f(glGetUniformLocation(reliefMapShading.handle, "viewPos"), app->camera.position.x, app->camera.position.y, app->camera.position.z);
 	glUniform3f(glGetUniformLocation(reliefMapShading.handle, "lightPos"), app->lights[0].position.x, app->lights[0].position.y, app->lights[0].position.z);

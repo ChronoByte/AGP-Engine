@@ -111,6 +111,7 @@ struct App
     u32 shadingPassShaderID; 
     u32 lightsShaderID;
 	u32 reliefMapShaderID;
+	u32 reliefMapShaderForwardID;
 	u32 blurShaderID;
 
     // texture indices
@@ -247,7 +248,7 @@ void Render(App* app);
 void RenderUsingDeferredPipeline(App* app);
 void RenderUsingForwardPipeline(App* app);
 
-void RenderReliefMapping(App* app, const Program& program);
+void RenderReliefMapping(App* app, const Program& program, bool deferred_rendering);
 void RenderEntities(App* app, const Program& shader);
 void RenderLights(App* app, const Program& shader);
 void FinalRenderPass(App* app);
