@@ -25,7 +25,26 @@ void Camera::Update(App* app)
 
 	if(app->input.mouseButtons[LEFT] == BUTTON_PRESSED)
 	{
+		isOrbit = false;
+
+		if (app->input.keys[K_W] == BUTTON_PRESSED) newPos += speed * this->camForward;
 		
+		if (app->input.keys[K_S] == BUTTON_PRESSED) newPos -= speed * this->camForward;
+
+		if (app->input.keys[K_D] == BUTTON_PRESSED) newPos += speed * this->camRight;
+		if (app->input.keys[K_A] == BUTTON_PRESSED) newPos -= speed * this->camRight;
+
+		if (app->input.keys[K_E] == BUTTON_PRESSED) newPos += speed * this->camUp;
+		if (app->input.keys[K_Q] == BUTTON_PRESSED) newPos -= speed * this->camUp;
+
+	
+		this->position += newPos;
+		this->viewMatrix = CalculateCameraRotation(app);
+	}
+	else if (app->input.mouseButtons[RIGHT] == BUTTON_PRESSED) {
+
+		isOrbit = true;
+
 		if (app->input.keys[K_W] == BUTTON_PRESSED) newPos += speed * this->camForward;
 		if (app->input.keys[K_S] == BUTTON_PRESSED) newPos -= speed * this->camForward;
 
@@ -35,26 +54,13 @@ void Camera::Update(App* app)
 		if (app->input.keys[K_E] == BUTTON_PRESSED) newPos += speed * this->camUp;
 		if (app->input.keys[K_Q] == BUTTON_PRESSED) newPos -= speed * this->camUp;
 
-		isOrbit = false;
-	
+		
 		this->position += newPos;
-		//this->target += newPos;
-
-		this->viewMatrix = CalculateCameraRotation(app);
-	}
-	else if (app->input.mouseButtons[RIGHT] == BUTTON_PRESSED) {
-
-		isOrbit = true;
 		this->viewMatrix = CalculateCameraRotation(app);
 
 	}
 
 	if (app->input.mouseButtons[RIGHT] == BUTTON_RELEASE) isOrbit = false;
-
-
-
-	//this->viewMatrix = glm::lookAt(this->position, this->target, glm::vec3(0, 1, 0));
-
 
 }
 
