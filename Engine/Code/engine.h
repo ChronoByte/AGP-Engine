@@ -247,6 +247,7 @@ void Render(App* app);
 void RenderUsingDeferredPipeline(App* app);
 void RenderUsingForwardPipeline(App* app);
 
+void RenderReliefMapping(App* app, const Program& program);
 void RenderEntities(App* app, const Program& shader);
 void RenderLights(App* app, const Program& shader);
 void FinalRenderPass(App* app);

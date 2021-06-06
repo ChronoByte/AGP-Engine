@@ -774,63 +774,15 @@ void RenderUsingDeferredPipeline(App* app)
 	glViewport(0, 0, app->displaySize.x, app->displaySize.y);
 	glEnable(GL_DEPTH_TEST);
 
+
 	app->gFbo.Bind();
 
 	// --------------------------------------- RELIEF MAPPING -------------------------------------
-
-	Program& reliefMapShading = app->programs[app->reliefMapShaderID];
-	glUseProgram(reliefMapShading.handle);
-
-	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "projection"), 1, GL_FALSE, (GLfloat*)&app->camera.projectionMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "view"), 1, GL_FALSE, (GLfloat*)&app->camera.viewMatrix);
-
-
-
-	glUniform3f(glGetUniformLocation(reliefMapShading.handle, "viewPos"), app->camera.position.x, app->camera.position.y, app->camera.position.z);
-	glUniform3f(glGetUniformLocation(reliefMapShading.handle, "lightPos"), app->lights[0].position.x, app->lights[0].position.y, app->lights[0].position.z);
-	glUniform1f(glGetUniformLocation(reliefMapShading.handle, "heightScale"), app->heigth_scale);
-	glUniform1i(glGetUniformLocation(reliefMapShading.handle, "clipBorders"), app->clip_borders);
-	glUniform1i(glGetUniformLocation(reliefMapShading.handle, "minLayers"), app->min_layers);
-	glUniform1i(glGetUniformLocation(reliefMapShading.handle, "maxLayers"), app->max_layers);
-
+	RenderReliefMapping(app, app->programs[app->reliefMapShaderID]);
 	
-	BindReliefTextures(app->reliefIdx, app);
-
-	//for (int i = 0; i < 36; i++)
-	//{	
-	//modelMatrix = glm::rotate(modelMatrix, app->ReliefAngles[i] += app->ReliefRotationRate[i] * app->deltaTime, glm::vec3(1.0f, 0.50f, 0.70f));
-	//}
-
-	glm::mat4 modelMatrix = glm::mat4(1.0f);
-	modelMatrix = TransformPositionScale(vec3(0.f, 25.0f, 0.f), vec3(15.0f));
-	if (app->rotate)
-	{
-		modelMatrix = TransformRotation(modelMatrix, app->ReliefAngles[0] += app->ReliefRotationRate[0] * app->deltaTime * 5.0f, glm::vec3(1.0f, 0.50f, 0.70f));
-	}
-	else
-	{
-		modelMatrix = glm::mat4(1.0f);
-		modelMatrix = TransformPositionScale(vec3(0.f, 25.0f, 0.f), vec3(15.0f));
-	}
-
-	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "model"), 1, GL_FALSE, (GLfloat*)&modelMatrix);
-	renderQuadTangentSpace();
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glUseProgram(0);
-
 	// --------------------------------------- RENDERING ENTITIES -------------------------------------
-
-	app->gFbo.Bind();
-
 	RenderEntities(app, app->programs[app->geometryPassShaderID]);
-
+	
 	app->gFbo.Unbind();
 
 	// --------------------------------------- SHADING PASS -------------------------------------
@@ -937,6 +889,58 @@ void RenderUsingForwardPipeline(App* app)
 
 	FinalRenderPass(app);
 }
+
+void RenderReliefMapping(App* app, const Program& program)
+{
+
+	Program& reliefMapShading = app->programs[app->reliefMapShaderID];
+	glUseProgram(reliefMapShading.handle);
+
+	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "projection"), 1, GL_FALSE, (GLfloat*)&app->camera.projectionMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "view"), 1, GL_FALSE, (GLfloat*)&app->camera.viewMatrix);
+
+
+
+	glUniform3f(glGetUniformLocation(reliefMapShading.handle, "viewPos"), app->camera.position.x, app->camera.position.y, app->camera.position.z);
+	glUniform3f(glGetUniformLocation(reliefMapShading.handle, "lightPos"), app->lights[0].position.x, app->lights[0].position.y, app->lights[0].position.z);
+	glUniform1f(glGetUniformLocation(reliefMapShading.handle, "heightScale"), app->heigth_scale);
+	glUniform1i(glGetUniformLocation(reliefMapShading.handle, "clipBorders"), app->clip_borders);
+	glUniform1i(glGetUniformLocation(reliefMapShading.handle, "minLayers"), app->min_layers);
+	glUniform1i(glGetUniformLocation(reliefMapShading.handle, "maxLayers"), app->max_layers);
+
+
+	BindReliefTextures(app->reliefIdx, app);
+
+	//for (int i = 0; i < 36; i++)
+	//{	
+	//modelMatrix = glm::rotate(modelMatrix, app->ReliefAngles[i] += app->ReliefRotationRate[i] * app->deltaTime, glm::vec3(1.0f, 0.50f, 0.70f));
+	//}
+
+	glm::mat4 modelMatrix = glm::mat4(1.0f);
+	modelMatrix = TransformPositionScale(vec3(0.f, 25.0f, 0.f), vec3(15.0f));
+	if (app->rotate)
+	{
+		modelMatrix = TransformRotation(modelMatrix, app->ReliefAngles[0] += app->ReliefRotationRate[0] * app->deltaTime * 5.0f, glm::vec3(1.0f, 0.50f, 0.70f));
+	}
+	else
+	{
+		modelMatrix = glm::mat4(1.0f);
+		modelMatrix = TransformPositionScale(vec3(0.f, 25.0f, 0.f), vec3(15.0f));
+	}
+
+	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "model"), 1, GL_FALSE, (GLfloat*)&modelMatrix);
+	renderQuadTangentSpace();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glUseProgram(0);
+}
+
 
 void RenderEntities(App* app, const Program& program)
 {
