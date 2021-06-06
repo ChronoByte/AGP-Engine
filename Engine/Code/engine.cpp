@@ -476,10 +476,14 @@ void Init(App* app)
 		}
 	}
 
-	//Textures
+	//Relief Textures
 	app->reliefDiffuseIdx = LoadTexture2D(app, "Relief/bricks2.jpg");
 	app->reliefNormalIdx = LoadTexture2D(app, "Relief/bricks2_normal.jpg");
 	app->reliefHeightIdx = LoadTexture2D(app, "Relief/bricks2_disp.jpg");
+
+	app->relief2DiffuseIdx = LoadTexture2D(app, "Relief/LeatherPadded_03_BC.png");
+	app->relief2NormalIdx = LoadTexture2D(app, "Relief/LeatherPadded_03_NOpenGL.png");
+	app->relief2HeightIdx = LoadTexture2D(app, "Relief/LeatherPadded_03_H.png");
 	
 
 	glUseProgram(reliefMapShader.handle);
@@ -641,6 +645,7 @@ void Gui(App* app)
 		ImGui::SliderFloat("Height Scale", &app->heigth_scale, 0.0f, 1.f);
 		ImGui::SliderInt("Min layers", &app->min_layers, 0.0f, 100.f);
 		ImGui::SliderInt("Max layers", &app->max_layers, 0.0f, 100.f);
+		ImGui::SliderInt("Textures", &app->reliefIdx, 0.0f, 1.f);
 		ImGui::Separator();
 
 		
@@ -719,6 +724,7 @@ void Update(App* app)
 
 void renderQuad();
 void renderQuadTangentSpace();
+void BindReliefTextures(int reliefIndex, App* app);
 u32 GetFinalTextureToRender(App* app);
 
 
@@ -774,24 +780,19 @@ void RenderUsingDeferredPipeline(App* app)
 	glUniform1i(glGetUniformLocation(reliefMapShading.handle, "minLayers"), app->min_layers);
 	glUniform1i(glGetUniformLocation(reliefMapShading.handle, "maxLayers"), app->max_layers);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefDiffuseIdx].handle);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefNormalIdx].handle);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefHeightIdx].handle);
+	
+	BindReliefTextures(app->reliefIdx, app);
 
-	for (int i = 0; i < 36; i++)
-	{
-		
-		glm::mat4 modelMatrix = glm::mat4(1.0f);
-		modelMatrix = TransformPositionScale(app->ReliefPositions[i], vec3(3.0f));
-		modelMatrix = TransformRotation(modelMatrix, app->ReliefAngles[i] += app->ReliefRotationRate[i] * app->deltaTime * 5.0f, glm::vec3(1.0f, 0.50f, 0.70f));
-		//modelMatrix = glm::rotate(modelMatrix, app->ReliefAngles[i] += app->ReliefRotationRate[i] * app->deltaTime, glm::vec3(1.0f, 0.50f, 0.70f));
+	//for (int i = 0; i < 36; i++)
+	//{	
+	//modelMatrix = glm::rotate(modelMatrix, app->ReliefAngles[i] += app->ReliefRotationRate[i] * app->deltaTime, glm::vec3(1.0f, 0.50f, 0.70f));
+	//}
 
-		glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "model"), 1, GL_FALSE, (GLfloat*)&modelMatrix);
-		renderQuadTangentSpace();
-	}
+	glm::mat4 modelMatrix = glm::mat4(1.0f);
+	modelMatrix = TransformPositionScale(vec3(0.f, 25.0f, 0.f), vec3(15.0f));
+	modelMatrix = TransformRotation(modelMatrix, app->ReliefAngles[0] += app->ReliefRotationRate[0] * app->deltaTime * 5.0f, glm::vec3(1.0f, 0.50f, 0.70f));
+	glUniformMatrix4fv(glGetUniformLocation(reliefMapShading.handle, "model"), 1, GL_FALSE, (GLfloat*)&modelMatrix);
+	renderQuadTangentSpace();
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -1074,7 +1075,33 @@ void renderQuadTangentSpace()
 	glBindVertexArray(0);
 }
 
+void BindReliefTextures(int reliefIndex, App* app)
+{
 
+	switch (reliefIndex)
+	{
+	case 0:
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefDiffuseIdx].handle);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefNormalIdx].handle);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefHeightIdx].handle);
+
+		break;
+	case 1:
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->relief2DiffuseIdx].handle);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->relief2NormalIdx].handle);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->relief2HeightIdx].handle);
+
+		break;
+
+	}
+
+}
 
 
 unsigned int quadVAO = 0;
