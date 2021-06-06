@@ -10,7 +10,29 @@ Made by Carlos Peña and Sebastià Lopez.
 <img src="https://github.com/ChronoByte/AGP-Engine/blob/main/Doc/image.PNG" >
 </p>
 
+
+## Effect Techniques
+
+### Relief Mapping
+
+<p align="center">
+<img src="https://github.com/ChronoByte/AGP-Engine/blob/main/Doc/agp1.PNG" >
+</p>
+<p align="center">
+<img src="https://github.com/ChronoByte/AGP-Engine/blob/main/Doc/agp3.PNG" >
+</p>
+<p align="center">
+<img src="https://github.com/ChronoByte/AGP-Engine/blob/main/Doc/agp4.PNG" >
+</p>
+<p align="center">
+<img src="https://github.com/ChronoByte/AGP-Engine/blob/main/Doc/agp5.PNG" >
+</p>
+
+### Multipass Bloom
+
+
 **GitHub repository:** [https://github.com/ChronoByte/AGP-Engine](https://github.com/ChronoByte/AGP-Engine)
+
 
 ## Controls
 
@@ -42,6 +64,9 @@ Made by Carlos Peña and Sebastià Lopez.
       * Blur iterations
       * Threshold
   
+## Shader files
+* Relief Mapping & Bloom [shaders.glsl](https://github.com/ChronoByte/AGP-Engine/blob/main/Engine/WorkingDir/shaders.glsl)
+
 ## Members
 
 * Carlos Peña Hernando [CarlosUPC](https://github.com/CarlosUPC)
