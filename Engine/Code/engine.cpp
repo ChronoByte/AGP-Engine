@@ -716,6 +716,7 @@ void Update(App* app)
 	{
 		app->gFbo.Resize(app->displaySize.x, app->displaySize.y);
 		app->shadingFbo.Resize(app->displaySize.x, app->displaySize.y);
+		app->blurFbo.Resize(app->displaySize.x, app->displaySize.y);
 	}
 	app->lastFrameDisplaySize = app->displaySize;
 
