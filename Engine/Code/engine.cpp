@@ -446,7 +446,7 @@ void Init(App* app)
 	}
 
 	// ----------- Directional Lights -----------
-	app->lights.push_back(Light(glm::vec3(-20.0f, 45.0f, 3.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(-1.0, -1.0, 0.0), 10U));
+	app->lights.push_back(Light(glm::vec3(-20.0f, 45.0f, 3.f), glm::vec3(1.0f, 1.0f, 1.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(-1.0, -1.0, -0.7), 32U));
 	app->lights.push_back(Light(glm::vec3(22.0f, 35.0f, -6.f), glm::vec3(0.3f, 0.0f, 0.0f), LightType::LIGHT_TYPE_DIRECTIONAL, glm::vec3(0.0, -1.0, 0.0), 10U));
 	
 
@@ -492,6 +492,10 @@ void Init(App* app)
 	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/Wood_Base.png"));
 	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/Wood_Normal.png"));
 	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/Wood_Height.png"));
+
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/CobbleStone_01_BC.png"));
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/CobbleStone_01_NOpenGL.png"));
+	app->reliefTextures.push_back(LoadTexture2D(app, "Relief/CobbleStone_01_H.png"));
 	
 
 	glUseProgram(reliefMapShader.handle);
@@ -654,7 +658,7 @@ void Gui(App* app)
 		ImGui::SliderFloat("Height Scale", &app->heigth_scale, 0.0f, 1.f);
 		ImGui::SliderInt("Min layers", &app->min_layers, 0.0f, 100.f);
 		ImGui::SliderInt("Max layers", &app->max_layers, 0.0f, 100.f);
-		ImGui::SliderInt("Textures", &app->reliefIdx, 1.0f, 4.f);
+		ImGui::SliderInt("Textures", &app->reliefIdx, 1.0f, 5.f);
 		ImGui::Separator();
 
 		
@@ -1132,6 +1136,15 @@ void BindReliefTextures(int reliefIndex, App* app)
 		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[10]].handle);
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[11]].handle);
+
+		break;
+	case 5:
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[12]].handle);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[13]].handle);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, app->textures[app->reliefTextures[14]].handle);
 
 		break;
 

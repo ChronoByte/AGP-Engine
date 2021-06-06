@@ -604,6 +604,7 @@ void main()
 	gAlbedoSpec.rgb = texture(diffuseMap, texCoords).rgb;
 	float depth = LinearizeDepth(gl_FragCoord.z) / far; // divide by far for demonstration
 	gDepth = vec4(vec3(depth), 1.0);
+	//FragColor = texture(diffuseMap, texCoords);
 	FragColor = vec4(ambient + diffuse + specular, 1.0);
 }
 
