@@ -614,15 +614,23 @@ void Gui(App* app)
 		}
 
 		// Render target information -------------------
-		ImGui::Separator();
-		ImGui::Text("Render Targets");
-		const char* items[] = { "Default", "G_Position", "G_Normals", "G_Albedo", "Depth Texture", "Bright Color Texture", "Blurred Bloom Texture" };
-		static int item_current = 0;
-		if (ImGui::Combo("Render Target", &item_current, items, IM_ARRAYSIZE(items)))
-		{
-			app->displayedTexture = (RenderTargetType)item_current;
-		}
 
+		static int item_current = 0;
+		if (app->render_pipeline == RenderPipeline::DEFERRED)
+		{
+			ImGui::Separator();
+			ImGui::Text("Render Targets");
+			const char* items[] = { "Default", "G_Position", "G_Normals", "G_Albedo", "Depth Texture", "Bright Color Texture", "Blurred Bloom Texture" };
+			if (ImGui::Combo("Render Target", &item_current, items, IM_ARRAYSIZE(items)))
+			{
+				app->displayedTexture = (RenderTargetType)item_current;
+			}
+		}
+		else if (app->render_pipeline == RenderPipeline::FORWARD)
+		{
+			item_current = 0;
+			app->displayedTexture = RenderTargetType::RENDER_TEXTURE;
+		}
 		
 
 	
